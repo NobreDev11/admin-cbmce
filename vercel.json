@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/admin/login", "destination": "/", "permanent": false },
+    { "source": "/checklist", "destination": "/admin", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/:path*", "destination": "https://vistoria-whatsapp.vercel.app/:path*" }
+  ]
+}

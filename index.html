@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin CBMCE</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚒</text></svg>" />
+  <style>
+    :root {
+      --bg: #f5f3f1; --surface: #ffffff; --text: #1d1a18; --muted: #6b635d; --border: #e4ded8;
+      --brand: #b3261e; --brand-strong: #8f1d17; --brand-soft: #fbe9e7;
+      --ok: #1e7a46; --ok-soft: #e3f3ea; --off: #8a817a; --off-soft: #efebe7;
+      --err: #a3231b; --err-soft: #fdecea;
+      --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.05);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #161312; --surface: #211d1b; --text: #f2ede9; --muted: #a89f98; --border: #362f2b;
+        --brand: #c7372e; --brand-strong: #e0574c; --brand-soft: #3a1f1c;
+        --ok: #5fc48a; --ok-soft: #1b3326; --off: #9a918a; --off-soft: #2b2522;
+        --err: #f19a92; --err-soft: #3a1f1c; --shadow: none;
+      }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column;
+    }
+    header { background: var(--brand); color: #fff; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; width: 100%; }
+    .bar { display: flex; align-items: center; gap: 12px; padding: 18px 16px; }
+    .logo { width: 44px; height: 44px; border-radius: 10px; background: rgba(255,255,255,.15);
+      display: grid; place-items: center; font-size: 24px; flex-shrink: 0; }
+    .bar h1 { margin: 0; font-size: 20px; letter-spacing: .02em; }
+    .bar p { margin: 2px 0 0; font-size: 13px; opacity: .85; }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .user span { opacity: .9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+    .ghost { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.35);
+      padding: 7px 12px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
+    .ghost:hover { background: rgba(255,255,255,.25); }
+    main { flex: 1; padding: 28px 0 40px; }
+    .intro { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+      box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+    .card-top { display: flex; align-items: center; gap: 12px; }
+    .icon { width: 42px; height: 42px; border-radius: 10px; background: var(--brand-soft);
+      display: grid; place-items: center; font-size: 22px; flex-shrink: 0; }
+    .card h2 { margin: 0; font-size: 17px; }
+    .status { display: inline-block; margin-top: 3px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .05em; padding: 2px 8px; border-radius: 999px; }
+    .status.on { color: var(--ok); background: var(--ok-soft); }
+    .status.soon { color: var(--off); background: var(--off-soft); }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; flex: 1; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px;
+      border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; text-decoration: none;
+      background: var(--brand); color: #fff; border: 0; cursor: pointer; transition: background .15s; width: 100%; }
+    .btn:hover { background: var(--brand-strong); }
+    .btn:focus-visible, input:focus-visible, .ghost:focus-visible { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
+    .btn:disabled { opacity: .7; cursor: wait; }
+    .btn[aria-disabled="true"] { background: var(--off-soft); color: var(--off); pointer-events: none; }
+    .login { max-width: 380px; margin: 24px auto 0; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px; }
+    .login h2 { margin: 0; font-size: 20px; }
+    .login p { margin: 0; color: var(--muted); font-size: 14px; }
+    label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+    input { font: inherit; font-weight: 400; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); }
+    .error { color: var(--err); background: var(--err-soft); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+    .loading { text-align: center; color: var(--muted); padding: 40px 0; }
+    footer { color: var(--muted); font-size: 12px; padding: 16px 0 24px; text-align: center; }
+    @media (max-width: 520px) { .user span { display: none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <div class="logo" aria-hidden="true">🚒</div>
+      <div>
+        <h1>ADMIN CBMCE</h1>
+        <p>Painel central de administração</p>
+      </div>
+      <div class="user" id="userBox" hidden>
+        <span id="userEmail"></span>
+        <button class="ghost" id="logoutBtn" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="loading" id="loadingView">Carregando…</div>
+
+      <form class="login" id="loginView" hidden novalidate>
+        <h2>Entrar</h2>
+        <p>Use o mesmo e-mail e senha de administrador do Checklist.</p>
+        <div class="error" id="loginError" role="alert" hidden></div>
+        <label>E-mail
+          <input type="email" name="email" autocomplete="username" required />
+        </label>
+        <label>Senha
+          <input type="password" name="password" autocomplete="current-password" required />
+        </label>
+        <button class="btn" type="submit" id="loginBtn">Entrar</button>
+      </form>
+
+      <section id="hubView" hidden>
+        <p class="intro">Escolha o sistema que deseja administrar.</p>
+        <div class="grid" id="systems"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer>Corpo de Bombeiros Militar do Ceará · ADMIN CBMCE</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script>
+    // Sistemas do portal. Para ativar um sistema, preencha "url".
+    // O Checklist usa "/admin": o painel é servido neste mesmo endereço (ver vercel.json),
+    // por isso o login feito aqui já vale lá.
+    const SYSTEMS = [
+      {
+        name: "Checklist de Vistoria", icon: "✅",
+        description: "Blocos, itens, perguntas, vistorias recebidas, resumo, acessos e configurações do checklist.",
+        url: "/admin", button: "Abrir admin do Checklist"
+      },
+      { name: "SisVTR", icon: "🚑", description: "Dashboard e cadastro de viaturas.", url: "", button: "Abrir SisVTR" },
+      { name: "SisDirso", icon: "📅", description: "Simulador e controle de plantões de DIRSO.", url: "", button: "Abrir SisDirso" }
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const cfg = window.ADMIN_CONFIG || {};
+
+    function show(view) {
+      for (const v of ["loadingView", "loginView", "hubView"]) $(v).hidden = v !== view;
+    }
+    function showError(msg) { $("loginError").textContent = msg; $("loginError").hidden = !msg; }
+
+    // Destino pedido pelo Checklist (?redirect=/admin...), só caminhos deste site.
+    function safeRedirect() {
+      const r = new URLSearchParams(location.search).get("redirect");
+      if (!r) return null;
+      try {
+        const u = new URL(r, location.origin);
+        return u.origin === location.origin && u.pathname !== "/" ? u.pathname + u.search + u.hash : null;
+      } catch { return null; }
+    }
+
+    function renderHub(email) {
+      $("userEmail").textContent = email;
+      $("userBox").hidden = false;
+      $("systems").innerHTML = SYSTEMS.map((s) => {
+        const on = Boolean(s.url);
+        return `
+          <article class="card">
+            <div class="card-top">
+              <div class="icon" aria-hidden="true">${esc(s.icon)}</div>
+              <div>
+                <h2>${esc(s.name)}</h2>
+                <span class="status ${on ? "on" : "soon"}">${on ? "Disponível" : "Em breve"}</span>
+              </div>
+            </div>
+            <p>${esc(s.description)}</p>
+            ${on ? `<a class="btn" href="${esc(s.url)}">${esc(s.button)} →</a>`
+                 : `<a class="btn" aria-disabled="true">Em breve</a>`}
+          </article>`;
+      }).join("");
+      show("hubView");
+    }
+
+    if (!cfg.supabaseUrl || !cfg.supabasePublishableKey || !window.supabase) {
+      show("loginView");
+      showError("Configuração ausente: confira o arquivo config.js.");
+      $("loginBtn").disabled = true;
+    } else {
+      const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
+        auth: { persistSession: true, autoRefreshToken: true }
+      });
+
+      // Mesma regra do Checklist: quem decide se é admin é o banco (is_admin()).
+      async function isAdmin() {
+        const { data, error } = await sb.rpc("is_admin");
+        return !error && data === true;
+      }
+
+      async function enter(session) {
+        const dest = safeRedirect();
+        if (dest) { location.replace(dest); return; }
+        renderHub(session.user.email || "");
+      }
+
+      (async () => {
+        const { data } = await sb.auth.getSession();
+        if (data.session && await isAdmin()) return enter(data.session);
+        if (data.session) await sb.auth.signOut({ scope: "local" });
+        show("loginView");
+        if (new URLSearchParams(location.search).get("denied")) showError("Esta conta não tem permissão de administrador.");
+      })();
+
+      $("loginView").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const f = new FormData(e.currentTarget);
+        const email = String(f.get("email") || "").trim();
+        const password = String(f.get("password") || "");
+        if (!email || !password) return showError("Informe e-mail e senha.");
+        showError("");
+        $("loginBtn").disabled = true; $("loginBtn").textContent = "Entrando…";
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+          showError(/invalid login/i.test(error.message) ? "E-mail ou senha incorretos." : "Não foi possível entrar. Tente novamente.");
+        } else if (!(await isAdmin())) {
+          await sb.auth.signOut({ scope: "local" });
+          showError("Esta conta não tem permissão de administrador.");
+        } else {
+          e.currentTarget.reset();
+          await enter(data.session);
+        }
+        $("loginBtn").disabled = false; $("loginBtn").textContent = "Entrar";
+      });
+
+      $("logoutBtn").addEventListener("click", async () => {
+        await sb.auth.signOut({ scope: "local" });
+        location.replace("/");
+      });
+    }
+  </script>
+</body>
+</html>
