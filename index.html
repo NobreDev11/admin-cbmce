@@ -115,7 +115,7 @@
 
   <footer>Corpo de Bombeiros Militar do Ceará · ADMIN CBMCE</footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="vendor/supabase.js"></script>
   <script src="config.js"></script>
   <script>
     // Sistemas do portal. Para ativar um sistema, preencha "url".
@@ -181,9 +181,14 @@
         auth: { persistSession: true, autoRefreshToken: true }
       });
 
+      // Nenhuma etapa pode deixar a tela travada: depois de 15 s vira erro.
+      const withTimeout = (p, ms = 15000) => Promise.race([
+        p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
+      ]);
+
       // Mesma regra do Checklist: quem decide se é admin é o banco (is_admin()).
       async function isAdmin() {
-        const { data, error } = await sb.rpc("is_admin");
+        const { data, error } = await withTimeout(sb.rpc("is_admin"));
         return !error && data === true;
       }
 
@@ -194,9 +199,11 @@
       }
 
       (async () => {
-        const { data } = await sb.auth.getSession();
-        if (data.session && await isAdmin()) return enter(data.session);
-        if (data.session) await sb.auth.signOut({ scope: "local" });
+        try {
+          const { data } = await withTimeout(sb.auth.getSession());
+          if (data.session && await isAdmin()) return enter(data.session);
+          if (data.session) await sb.auth.signOut({ scope: "local" });
+        } catch { /* sem sessão válida: mostra o login */ }
         show("loginView");
         if (new URLSearchParams(location.search).get("denied")) showError("Esta conta não tem permissão de administrador.");
       })();
@@ -209,10 +216,17 @@
         if (!email || !password) return showError("Informe e-mail e senha.");
         showError("");
         $("loginBtn").disabled = true; $("loginBtn").textContent = "Entrando…";
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) {
+        let data, error;
+        try {
+          ({ data, error } = await withTimeout(sb.auth.signInWithPassword({ email, password })));
+        } catch {
+          error = { message: "timeout" };
+        }
+        if (error && error.message === "timeout") {
+          showError("O servidor demorou para responder. Verifique a internet e tente de novo.");
+        } else if (error) {
           showError(/invalid login/i.test(error.message) ? "E-mail ou senha incorretos." : "Não foi possível entrar. Tente novamente.");
-        } else if (!(await isAdmin())) {
+        } else if (!(await isAdmin().catch(() => false))) {
           await sb.auth.signOut({ scope: "local" });
           showError("Esta conta não tem permissão de administrador.");
         } else {
