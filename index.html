@@ -210,7 +210,8 @@
 
       $("loginView").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const f = new FormData(e.currentTarget);
+        const form = e.currentTarget; // guardado: depois de um await o evento perde a referência
+        const f = new FormData(form);
         const email = String(f.get("email") || "").trim();
         const password = String(f.get("password") || "");
         if (!email || !password) return showError("Informe e-mail e senha.");
@@ -230,8 +231,9 @@
           await sb.auth.signOut({ scope: "local" });
           showError("Esta conta não tem permissão de administrador.");
         } else {
-          e.currentTarget.reset();
-          await enter(data.session);
+          form.reset();
+          $("loginBtn").disabled = false; $("loginBtn").textContent = "Entrar";
+          return enter(data.session);
         }
         $("loginBtn").disabled = false; $("loginBtn").textContent = "Entrar";
       });
