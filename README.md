@@ -29,3 +29,8 @@ Abrir `index.html` direto testa só o login. O botão do Checklist só funciona 
 
 ## Ativar outros sistemas
 Preencha `url` do sistema em `SYSTEMS`. SisVTR e SisDirso têm login próprio por enquanto.
+
+## Escala de Serviço
+O botão "Abrir Escala" abre `/escala/`, que o `vercel.json` repassa para `https://escala-cbmce.vercel.app`
+(repo `NobreDev11/escala-cbmce`, pasta `C:\Projetos\web\CBMCE\Escala`). Mesmo endereço = mesmo login.
+Se o endereço da Escala na Vercel for outro, ajuste a regra `/escala/:path*` no `vercel.json`.
