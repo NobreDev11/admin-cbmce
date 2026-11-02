@@ -128,7 +128,12 @@
         url: "/admin", button: "Abrir admin do Checklist"
       },
       { name: "SisVTR", icon: "🚑", description: "Dashboard e cadastro de viaturas.", url: "", button: "Abrir SisVTR" },
-      { name: "SisDirso", icon: "📅", description: "Simulador e controle de plantões de DIRSO.", url: "", button: "Abrir SisDirso" }
+      { name: "SisDirso", icon: "📅", description: "Simulador e controle de plantões de DIRSO.", url: "", button: "Abrir SisDirso" },
+      {
+        name: "Escala de Serviço", icon: "📋",
+        description: "Lê a escala em PDF (arquivo ou link do Drive) e filtra por militar, função, data e permutas.",
+        url: "/escala/", button: "Abrir Escala"
+      }
     ];
 
     const $ = (id) => document.getElementById(id);

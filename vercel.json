@@ -3,9 +3,11 @@
   "cleanUrls": true,
   "redirects": [
     { "source": "/admin/login", "destination": "/", "permanent": false },
-    { "source": "/checklist", "destination": "/admin", "permanent": false }
+    { "source": "/checklist", "destination": "/admin", "permanent": false },
+    { "source": "/escala", "destination": "/escala/", "permanent": false }
   ],
   "rewrites": [
+    { "source": "/escala/:path*", "destination": "https://escala-cbmce.vercel.app/:path*" },
     { "source": "/:path*", "destination": "https://vistoria-whatsapp.vercel.app/:path*" }
   ]
 }
