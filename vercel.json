@@ -7,6 +7,7 @@
     { "source": "/escala", "destination": "/escala/", "permanent": false }
   ],
   "rewrites": [
+    { "source": "/escala/", "destination": "https://escala-cbmce.vercel.app/" },
     { "source": "/escala/:path*", "destination": "https://escala-cbmce.vercel.app/:path*" },
     { "source": "/:path*", "destination": "https://vistoria-whatsapp.vercel.app/:path*" }
   ]
