@@ -67,5 +67,6 @@ Sem sessão → volta ao login do portal e, depois de entrar, abre o SisVTR.
 - Estrutura: `supabase/sisvtr_frota.sql`. Os **dados** (planilha `arquivo_pronto_para_dashboard.xlsx`) não ficam no GitHub:
   são carregados uma vez pelo arquivo `sisvtr_dados_supabase.sql` (tabela + itens), guardado só no computador (pasta `SisVTR`).
 - **Uma vez:** Supabase do Checklist → SQL Editor → colar `sisvtr_dados_supabase.sql` → Run (deve mostrar 1224 itens). Pode rodar de novo sem duplicar.
+- **Só a 7ª CIA:** a página busca apenas `obm = '7ª CIA/1º BBM - CISP'` (constante `OBM_FIXA` em `sisvtr.html`). Para outra OBM, trocar a constante.
 - As tabelas do painel não mostram a coluna Valor (os cartões do topo e o formulário de edição ainda têm).
 - Mantido pelo chat SISVTR. O projeto antigo `NobreDev11/SisVTR` (login próprio, nunca publicado) não é usado aqui.

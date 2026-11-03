@@ -54,7 +54,7 @@
     .filters {
       padding: 16px;
       display: grid;
-      grid-template-columns: repeat(6, minmax(140px, 1fr));
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
       gap: 12px;
       margin-bottom: 18px
     }
@@ -427,7 +427,7 @@
   <div class="gate" id="gate">Carregando SisVTR…</div>
   <div class="wrap">
     <header><div class="top-actions"><span id="userEmail"></span><a class="top-btn" href="/">← Portal</a><button class="top-btn" id="logoutBtn" type="button">Sair</button></div>
-      <h1>Dashboard Executivo — Gestão de Frota e Patrimônio</h1>
+      <h1>SisVTR — 7ª CIA/1º BBM (CISP)</h1>
       <div class="sub" id="sub">Carregando…</div>
     </header>
     <section class="filters">
@@ -435,7 +435,6 @@
       <div><label>Situação</label><select id="situacao"></select></div>
       <div><label>Tipo</label><select id="tipo"></select></div>
       <div><label>Segmentação</label><select id="segmentacao"></select></div>
-      <div><label>OBM</label><select id="obm"></select></div>
       <div><label>Marca</label><select id="marca"></select></div>
       <div style="grid-column:1/-1"><button onclick="resetFilters()">Limpar filtros</button></div>
     </section>
@@ -458,8 +457,8 @@
         <div id="idadeChart"></div>
       </div>
       <div class="card">
-        <h2>OBMs com mais itens</h2>
-        <div id="obmChart"></div>
+        <h2>Classificação</h2>
+        <div id="classChart"></div>
       </div>
       <div class="card">
         <h2>Marcas com mais itens</h2>
@@ -501,10 +500,12 @@
     // Os dados ficam na tabela public.sisvtr_frota (somente administradores leem/alteram).
     const cfg = window.ADMIN_CONFIG || {};
     const TABLE = 'sisvtr_frota';
+    // Painel restrito a uma OBM: só os itens dela são buscados no banco.
+    const OBM_FIXA = '7ª CIA/1º BBM - CISP';
     const REF = new Date().getFullYear();
     let sb = null;
     let DATA = [];
-    const fields = {ano: 'AnoChegadaSanitized', situacao: 'SituacaoSanitized', tipo: 'TipoSanitized', segmentacao: 'SegmentacaoSanitized', obm: 'ObmSanitized', marca: 'MarcaSanitized'};
+    const fields = {ano: 'AnoChegadaSanitized', situacao: 'SituacaoSanitized', tipo: 'TipoSanitized', segmentacao: 'SegmentacaoSanitized', marca: 'MarcaSanitized'};
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
     const val = (r, k) => r[k] === null || r[k] === undefined || r[k] === '' ? '' : r[k];
     const display = v => v === null || v === undefined || String(v).trim() === '' ? '<span class="missing">⚠ Faltante</span>' : esc(v);
@@ -531,7 +532,7 @@
       bars('situChart', countBy(a, 'SituacaoSanitized'), total, 12); bars('tipoChart', countBy(a, 'TipoSanitized'), total, 8); bars('anoChart', countBy(a, 'AnoChegadaSanitized'), total, 15);
       const age = {'0–5 anos': 0, '6–10 anos': 0, '11–15 anos': 0, '16–20 anos': 0, '21+ anos': 0, 'Faltante': 0};
       a.forEach(r => {const raw = val(r, 'AnoFabricacaoSanitized'); const y = Number(raw); if (raw === '' || !Number.isFinite(y)) age.Faltante++; else {const z = REF - y; if (z <= 5) age['0–5 anos']++; else if (z <= 10) age['6–10 anos']++; else if (z <= 15) age['11–15 anos']++; else if (z <= 20) age['16–20 anos']++; else age['21+ anos']++} });
-      bars('idadeChart', Object.entries(age).sort((x, y) => y[1] - x[1]), total, 10); bars('obmChart', countBy(a, 'ObmSanitized'), total, 10); bars('marcaChart', countBy(a, 'MarcaSanitized'), total, 10);
+      bars('idadeChart', Object.entries(age).sort((x, y) => y[1] - x[1]), total, 10); bars('classChart', countBy(a, 'ClassificacaoSanitized'), total, 10); bars('marcaChart', countBy(a, 'MarcaSanitized'), total, 10);
       const invalid = a.filter(r => String(val(r, 'SegmentacaoSanitized')).toUpperCase() === 'INVALID').length;
       const missingModel = a.filter(r => val(r, 'ModeloSanitized') === '' || String(r.ModeloSanitized).toUpperCase() === 'INVALID').length;
       const desc = a.filter(r => String(val(r, 'SituacaoSanitized')).toLowerCase().includes('descarga')).length;
@@ -583,14 +584,14 @@
     async function loadAll() {
       let all = [];
       for (let from = 0; ; from += 1000) {
-        const {data, error} = await sb.from(TABLE).select('*').order('id').range(from, from + 999);
+        const {data, error} = await sb.from(TABLE).select('*').eq('obm', OBM_FIXA).order('id').range(from, from + 999);
         if (error) throw error;
         all = all.concat(data);
         if (data.length < 1000) break;
       }
       return all.map(apiRowToData).sort((x, y) => String(x.IdSanitized).localeCompare(String(y.IdSanitized), 'pt-BR', {numeric: true}));
     }
-    function setSub() {document.getElementById('sub').textContent = `Análise interativa do inventário • ${DATA.length.toLocaleString('pt-BR')} registros • referência de idade: ${REF}`}
+    function setSub() {document.getElementById('sub').textContent = `Itens da 7ª CIA/1º BBM – CISP • ${DATA.length.toLocaleString('pt-BR')} registros • referência de idade: ${REF}`}
     async function refreshData() {DATA = await loadAll(); fillFilters(); setSub(); render()}
 
     function gate(msg, link) {const g = document.getElementById('gate'); g.innerHTML = esc(msg) + (link ? ` <a href="${link[0]}">${esc(link[1])}</a>` : ''); g.hidden = false}
