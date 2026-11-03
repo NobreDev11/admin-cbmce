@@ -28,7 +28,7 @@ Painel central do CBMCE. Login único: o mesmo e-mail e senha de administrador d
 Abrir `index.html` direto testa só o login. O botão do Checklist só funciona publicado na Vercel.
 
 ## Ativar outros sistemas
-Preencha `url` do sistema em `SYSTEMS`. SisVTR e SisDirso têm login próprio por enquanto.
+Preencha `url` do sistema em `SYSTEMS`. SisDirso tem login próprio por enquanto.
 
 ## Escala de Serviço
 O botão "Abrir Escala" abre `/escala/`, que o `vercel.json` repassa para `https://escala-cbmce.vercel.app`
@@ -59,3 +59,13 @@ Para incluir uma nova página de usuário: novo bloco em `pages.js` e `userPage:
 No cartão da Escala, o responsável cola o link do PDF (Google Drive, "Qualquer pessoa com o link") e clica
 em **Salvar link**. Todo o efetivo vê a escala desse link; ninguém troca pela página da Escala.
 Fica em `portal_pages.link` (linha `escala`). **Uma vez:** rodar `supabase/portal_pages_link.sql` no SQL Editor.
+
+## SisVTR (`/sisvtr`)
+Dashboard da frota dentro do portal (`sisvtr.html`), com o **mesmo login** (sessão do portal + `is_admin()`).
+Sem sessão → volta ao login do portal e, depois de entrar, abre o SisVTR.
+- Dados: tabela `public.sisvtr_frota` no Supabase do Checklist. **Somente administradores** leem, editam e excluem (RLS `is_admin()`); nada é público.
+- Estrutura: `supabase/sisvtr_frota.sql`. Os **dados** (planilha `arquivo_pronto_para_dashboard.xlsx`) não ficam no GitHub:
+  são carregados uma vez pelo arquivo `sisvtr_dados_supabase.sql` (tabela + itens), guardado só no computador (pasta `SisVTR`).
+- **Uma vez:** Supabase do Checklist → SQL Editor → colar `sisvtr_dados_supabase.sql` → Run (deve mostrar 1224 itens). Pode rodar de novo sem duplicar.
+- As tabelas do painel não mostram a coluna Valor (os cartões do topo e o formulário de edição ainda têm).
+- Mantido pelo chat SISVTR. O projeto antigo `NobreDev11/SisVTR` (login próprio, nunca publicado) não é usado aqui.

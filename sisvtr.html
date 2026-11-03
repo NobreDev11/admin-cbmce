@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>SisVTR — Gestão de Frota</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚑</text></svg>">
+  <style>
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      background: #f4f6f8;
+      color: #18212b
+    }
+
+    .wrap {
+      max-width: 1500px;
+      margin: auto;
+      padding: 24px
+    }
+
+    header {
+      background: #18212b;
+      color: white;
+      border-radius: 18px;
+      padding: 24px 28px;
+      margin-bottom: 18px
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px
+    }
+
+    .sub {
+      opacity: .75;
+      margin-top: 6px
+    }
+
+    .filters,
+    .card {
+      background: white;
+      border: 1px solid #e2e7ec;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px #00000008
+    }
+
+    .filters {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #65717d;
+      display: block;
+      margin-bottom: 5px
+    }
+
+    select,
+    input {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid #d7dde3;
+      border-radius: 10px;
+      background: #fff;
+      color: #18212b
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: #18212b;
+      color: white;
+      cursor: pointer;
+      font-weight: 700
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 18px
+    }
+
+    .kpi {
+      padding: 18px
+    }
+
+    .kpi .n {
+      font-size: 25px;
+      font-weight: 800;
+      margin-top: 6px
+    }
+
+    .kpi .s {
+      font-size: 12px;
+      color: #78838e
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 18px
+    }
+
+    .card {
+      padding: 18px
+    }
+
+    .card h2 {
+      font-size: 16px;
+      margin: 0 0 14px
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: 180px 1fr 80px;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0;
+      font-size: 12px
+    }
+
+    .track {
+      height: 12px;
+      background: #edf0f3;
+      border-radius: 10px;
+      overflow: hidden
+    }
+
+    .fill {
+      height: 100%;
+      background: #486581;
+      border-radius: 10px
+    }
+
+    .fill.warn {
+      background: #b26a00
+    }
+
+    .list {
+      max-height: 300px;
+      overflow: auto
+    }
+
+    .attention {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px
+    }
+
+    .alert {
+      padding: 14px;
+      border-radius: 12px;
+      background: #fff4df;
+      border: 1px solid #f0d49e
+    }
+
+    .detail {
+      margin-top: 18px
+    }
+
+    .detail-top {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 12px
+    }
+
+    .detail-search {
+      max-width: 430px
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 560px;
+      border: 1px solid #e2e7ec;
+      border-radius: 12px
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 12px;
+      background: white
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #eef2f5;
+      text-align: left;
+      padding: 10px;
+      white-space: nowrap;
+      z-index: 1
+    }
+
+    td {
+      padding: 9px 10px;
+      border-top: 1px solid #edf0f3;
+      vertical-align: top
+    }
+
+    .missing {
+      color: #b54708;
+      font-weight: 800;
+      background: #fff4e5;
+      padding: 2px 5px;
+      border-radius: 5px
+    }
+
+    .muted {
+      color: #7a858f
+    }
+
+    .empty {
+      padding: 24px;
+      text-align: center;
+      color: #7a858f
+    }
+
+    .foot {
+      font-size: 12px;
+      color: #7a858f;
+      padding: 10px 2px
+    }
+
+    @media(max-width:1100px) {
+      .kpis {
+        grid-template-columns: repeat(3, 1fr)
+      }
+
+      .filters {
+        grid-template-columns: repeat(3, 1fr)
+      }
+    }
+
+    @media(max-width:700px) {
+      .wrap {
+        padding: 12px
+      }
+
+      .kpis,
+      .grid,
+      .attention,
+      .filters {
+        grid-template-columns: 1fr
+      }
+
+      .bar {
+        grid-template-columns: 120px 1fr 60px
+      }
+    }
+
+    .login-error {
+      min-height: 20px;
+      color: #b42318;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 10px
+    }
+
+    .top-actions {
+      float: right;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px
+    }
+
+    .top-actions span {
+      opacity: .75;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .top-btn {
+      background: #fff;
+      color: #18212b;
+      border: 1px solid #d7dde3;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      text-decoration: none
+    }
+
+    .gate {
+      max-width: 620px;
+      margin: 60px auto;
+      background: #fff;
+      border: 1px solid #e2e7ec;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      color: #4b5563;
+      line-height: 1.5
+    }
+
+    .gate a {
+      color: #b3261e;
+      font-weight: 700
+    }
+
+    @media(max-width:700px) {
+      .top-actions {
+        float: none;
+        margin-bottom: 12px
+      }
+
+      .top-actions span {
+        display: none
+      }
+    }
+
+    .locked .wrap {
+      display: none
+    }
+
+    .manage {
+      margin-top: 18px
+    }
+
+    .manage h2 {
+      margin-bottom: 6px
+    }
+
+    .manage-note {
+      font-size: 12px;
+      color: #697386;
+      margin-bottom: 12px
+    }
+
+    .actions-cell {
+      white-space: nowrap
+    }
+
+    .small-btn {
+      padding: 7px 9px;
+      border-radius: 8px;
+      border: 1px solid #d7dde3;
+      background: #fff;
+      color: #18212b;
+      font-size: 11px;
+      margin-right: 5px;
+      cursor: pointer
+    }
+
+    .small-btn.danger {
+      color: #b91c1c
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: #0008;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100
+    }
+
+    .modal.open {
+      display: flex
+    }
+
+    .modal-box {
+      background: #fff;
+      width: min(900px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      border-radius: 16px;
+      padding: 20px
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px
+    }
+
+    .modal-grid label {
+      font-size: 11px
+    }
+
+    .modal-grid input {
+      width: 100%;
+      padding: 9px;
+      border: 1px solid #d7dde3;
+      border-radius: 8px;
+      margin-top: 5px
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px
+    }
+
+    @media(max-width:800px) {
+      .modal-grid {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body class="locked">
+  <div class="gate" id="gate">Carregando SisVTR…</div>
+  <div class="wrap">
+    <header><div class="top-actions"><span id="userEmail"></span><a class="top-btn" href="/">← Portal</a><button class="top-btn" id="logoutBtn" type="button">Sair</button></div>
+      <h1>Dashboard Executivo — Gestão de Frota e Patrimônio</h1>
+      <div class="sub" id="sub">Carregando…</div>
+    </header>
+    <section class="filters">
+      <div><label>Ano de chegada</label><select id="ano"></select></div>
+      <div><label>Situação</label><select id="situacao"></select></div>
+      <div><label>Tipo</label><select id="tipo"></select></div>
+      <div><label>Segmentação</label><select id="segmentacao"></select></div>
+      <div><label>OBM</label><select id="obm"></select></div>
+      <div><label>Marca</label><select id="marca"></select></div>
+      <div style="grid-column:1/-1"><button onclick="resetFilters()">Limpar filtros</button></div>
+    </section>
+    <section class="kpis" id="kpis"></section>
+    <section class="grid">
+      <div class="card">
+        <h2>Situação dos itens</h2>
+        <div id="situChart"></div>
+      </div>
+      <div class="card">
+        <h2>Tipos de item</h2>
+        <div id="tipoChart"></div>
+      </div>
+      <div class="card">
+        <h2>Itens por ano de chegada</h2>
+        <div id="anoChart"></div>
+      </div>
+      <div class="card">
+        <h2>Faixa de idade</h2>
+        <div id="idadeChart"></div>
+      </div>
+      <div class="card">
+        <h2>OBMs com mais itens</h2>
+        <div id="obmChart"></div>
+      </div>
+      <div class="card">
+        <h2>Marcas com mais itens</h2>
+        <div id="marcaChart"></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Radar de atenção</h2>
+      <div class="attention" id="attention"></div>
+    </section>
+    <section class="card detail">
+      <div class="detail-top">
+        <div>
+          <h2 style="margin-bottom:3px">Detalhe dos itens filtrados</h2><span class="muted" id="count"></span>
+        </div>
+        <div class="detail-search"><label>Pesquisar nos itens</label><input id="search" placeholder="Prefixo, descrição, marca, OBM, classificação..."></div>
+      </div>
+      <div class="table-wrap" id="table"></div>
+    </section>
+    <section class="card manage">
+      <h2>Gerenciamento de cadastros</h2>
+      <div class="manage-note">Somente usuários autenticados. Edite ou exclua os registros já cadastrados na base central.</div>
+      <div class="table-wrap" id="manageTable"></div>
+    </section>
+    <div class="modal" id="editModal">
+      <div class="modal-box">
+        <h2>Editar item</h2>
+        <div class="modal-grid" id="editFields"></div>
+        <div class="modal-actions"><button class="small-btn" id="cancelEdit">Cancelar</button><button class="small-btn" id="saveEdit">Salvar alterações</button></div>
+        <div class="login-error" id="editError"></div>
+      </div>
+    </div>
+    <div class="foot">Fonte: base SisVTR no Supabase (carregada de arquivo_pronto_para_dashboard.xlsx) • Campos faltantes são exibidos como “⚠ Faltante”. “Descrição” utiliza o Modelo, pois a base não possui coluna específica de descrição.</div>
+  </div>
+  <script src="vendor/supabase.js"></script>
+  <script src="config.js"></script>
+  <script>
+    // SisVTR dentro do portal: usa a sessão do portal (Supabase do Checklist + is_admin()).
+    // Os dados ficam na tabela public.sisvtr_frota (somente administradores leem/alteram).
+    const cfg = window.ADMIN_CONFIG || {};
+    const TABLE = 'sisvtr_frota';
+    const REF = new Date().getFullYear();
+    let sb = null;
+    let DATA = [];
+    const fields = {ano: 'AnoChegadaSanitized', situacao: 'SituacaoSanitized', tipo: 'TipoSanitized', segmentacao: 'SegmentacaoSanitized', obm: 'ObmSanitized', marca: 'MarcaSanitized'};
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+    const val = (r, k) => r[k] === null || r[k] === undefined || r[k] === '' ? '' : r[k];
+    const display = v => v === null || v === undefined || String(v).trim() === '' ? '<span class="missing">⚠ Faltante</span>' : esc(v);
+    function uniq(key, arr = DATA) {return [...new Set(arr.map(r => val(r, key)).filter(v => v !== ''))].sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', {numeric: true}))}
+    function fillFilters() {for (const [id, key] of Object.entries(fields)) {const s = document.getElementById(id); const cur = s.value; s.innerHTML = '<option value="">Todos</option>' + uniq(key).map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join(''); s.value = cur} }
+    function filtered() {let a = DATA; for (const [id, key] of Object.entries(fields)) {const x = document.getElementById(id).value; if (x) a = a.filter(r => String(val(r, key)) === x)} return a}
+    function brl(n) {return new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0}).format(n || 0)}
+    function countBy(a, k) {const m = {}; a.forEach(r => {const x = val(r, k) || 'Faltante'; m[x] = (m[x] || 0) + 1}); return Object.entries(m).sort((a, b) => b[1] - a[1])}
+    function bars(target, items, total, limit = 10) {const max = items[0]?.[1] || 1; document.getElementById(target).innerHTML = items.slice(0, limit).map(([k, n]) => `<div class="bar"><div title="${esc(k)}">${esc(k)}</div><div class="track"><div class="fill" style="width:${Math.max(2, n / max * 100)}%"></div></div><strong>${n}${total ? ' (' + Math.round(n / total * 100) + '%)' : ''}</strong></div>`).join('') || '<div class="empty">Sem dados</div>'}
+    function searchFilter(a) {const q = document.getElementById('search').value.toLowerCase().trim(); return q ? a.filter(r => Object.entries(r).some(([k, v]) => k !== 'ValorSanitized' && String(v ?? '').toLowerCase().includes(q))) : a}
+
+    function render() {
+      const a = filtered(); const total = a.length;
+      const value = a.reduce((s, r) => s + (Number(r.ValorSanitized) || 0), 0);
+      const agesOk = a.filter(r => val(r, 'AnoFabricacaoSanitized') !== '').map(r => REF - Number(r.AnoFabricacaoSanitized)).filter(Number.isFinite);
+      document.getElementById('kpis').innerHTML = [
+        ['Itens', total.toLocaleString('pt-BR'), 'Registros no filtro'],
+        ['Valor cadastrado', brl(value), 'Soma dos valores'],
+        ['Valor médio', brl(total ? value / total : 0), 'Por item'],
+        ['Atualizados', a.filter(r => val(r, 'SituacaoSanitized') === 'Atualizado').length, 'Situação Atualizado'],
+        ['Para descarga', a.filter(r => String(val(r, 'SituacaoSanitized')).toLowerCase().includes('descarga')).length, 'Inclui pendências'],
+        ['Idade média', agesOk.length ? (agesOk.reduce((x, y) => x + y, 0) / agesOk.length).toFixed(1) + ' anos' : '—', 'Referência ' + REF]
+      ].map(x => `<div class="card kpi"><div class="s">${x[0]}</div><div class="n">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
+      bars('situChart', countBy(a, 'SituacaoSanitized'), total, 12); bars('tipoChart', countBy(a, 'TipoSanitized'), total, 8); bars('anoChart', countBy(a, 'AnoChegadaSanitized'), total, 15);
+      const age = {'0–5 anos': 0, '6–10 anos': 0, '11–15 anos': 0, '16–20 anos': 0, '21+ anos': 0, 'Faltante': 0};
+      a.forEach(r => {const raw = val(r, 'AnoFabricacaoSanitized'); const y = Number(raw); if (raw === '' || !Number.isFinite(y)) age.Faltante++; else {const z = REF - y; if (z <= 5) age['0–5 anos']++; else if (z <= 10) age['6–10 anos']++; else if (z <= 15) age['11–15 anos']++; else if (z <= 20) age['16–20 anos']++; else age['21+ anos']++} });
+      bars('idadeChart', Object.entries(age).sort((x, y) => y[1] - x[1]), total, 10); bars('obmChart', countBy(a, 'ObmSanitized'), total, 10); bars('marcaChart', countBy(a, 'MarcaSanitized'), total, 10);
+      const invalid = a.filter(r => String(val(r, 'SegmentacaoSanitized')).toUpperCase() === 'INVALID').length;
+      const missingModel = a.filter(r => val(r, 'ModeloSanitized') === '' || String(r.ModeloSanitized).toUpperCase() === 'INVALID').length;
+      const desc = a.filter(r => String(val(r, 'SituacaoSanitized')).toLowerCase().includes('descarga')).length;
+      document.getElementById('attention').innerHTML = [['Itens para descarga', desc, 'Requerem análise de destinação'], ['Segmentação INVALID', invalid, 'Registros para saneamento cadastral'], ['Descrição/Modelo faltante', missingModel, 'Sem descrição disponível na base']].map(x => `<div class="alert"><strong>${x[0]}</strong><div style="font-size:24px;font-weight:800;margin:5px 0">${x[1]}</div><span class="muted">${x[2]}</span></div>`).join('');
+      renderTable(a); renderManage(a);
+    }
+
+    // Tabelas sem a coluna Valor (pedido do responsável em 03/11/2026).
+    function renderTable(a) {
+      a = searchFilter(a);
+      document.getElementById('count').textContent = `${a.length.toLocaleString('pt-BR')} item(ns) exibido(s)`;
+      if (!a.length) {document.getElementById('table').innerHTML = '<div class="empty">Nenhum item encontrado.</div>'; return}
+      const shown = a.slice(0, 250);
+      const cols = [['Prefixo', 'PrefixoSanitized'], ['ID', 'IdSanitized'], ['Descrição / Modelo', 'ModeloSanitized'], ['Classificação', 'ClassificacaoSanitized'], ['Marca', 'MarcaSanitized'], ['Tipo', 'TipoSanitized'], ['Tipo VTR', 'TipoVtrSanitized'], ['Situação', 'SituacaoSanitized'], ['Ano fabricação', 'AnoFabricacaoSanitized'], ['Ano modelo', 'AnoModeloSanitized'], ['OBM', 'ObmSanitized'], ['Segmentação', 'SegmentacaoSanitized'], ['Segmento', 'SegmentoSanitized'], ['Cor', 'CorSanitized']];
+      document.getElementById('table').innerHTML = '<table><thead><tr>' + cols.map(c => `<th>${c[0]}</th>`).join('') + '</tr></thead><tbody>' + shown.map(r => '<tr>' + cols.map(([_, k]) => `<td>${display(r[k])}</td>`).join('') + '</tr>').join('') + '</tbody></table>' + (a.length > 250 ? '<div class="foot" style="padding:10px">Exibindo 250 de ' + a.length + '. Refine os filtros ou a pesquisa para localizar os demais.</div>' : '');
+    }
+    function renderManage(a) {
+      const x = searchFilter(a); const shown = x.slice(0, 250); const el = document.getElementById('manageTable');
+      if (!shown.length) {el.innerHTML = '<div class="empty">Nenhum cadastro encontrado.</div>'; return}
+      el.innerHTML = '<table><thead><tr><th>Prefixo</th><th>ID</th><th>Descrição / Modelo</th><th>Classificação</th><th>Marca</th><th>Tipo</th><th>Situação</th><th>OBM</th><th>Ações</th></tr></thead><tbody>' + shown.map(r => `<tr><td>${display(r.PrefixoSanitized)}</td><td>${display(r.IdSanitized)}</td><td>${display(r.ModeloSanitized)}</td><td>${display(r.ClassificacaoSanitized)}</td><td>${display(r.MarcaSanitized)}</td><td>${display(r.TipoSanitized)}</td><td>${display(r.SituacaoSanitized)}</td><td>${display(r.ObmSanitized)}</td><td class="actions-cell"><button class="small-btn editBtn" data-id="${encodeURIComponent(r._dbId)}">Editar</button><button class="small-btn danger deleteBtn" data-id="${encodeURIComponent(r._dbId)}">Excluir</button></td></tr>`).join('') + '</tbody></table>' + (x.length > 250 ? '<div class="foot" style="padding:10px">Exibindo 250 de ' + x.length + '.</div>' : '');
+    }
+
+    const editKeys = [['IdSanitized', 'ID', 'id'], ['PrefixoSanitized', 'Prefixo', 'prefixo'], ['ModeloSanitized', 'Descrição / Modelo', 'modelo'], ['ClassificacaoSanitized', 'Classificação', 'classificacao'], ['MarcaSanitized', 'Marca', 'marca'], ['TipoSanitized', 'Tipo', 'tipo'], ['SituacaoSanitized', 'Situação', 'situacao'], ['SegmentacaoSanitized', 'Segmentação', 'segmentacao'], ['SegmentoSanitized', 'Segmento', 'segmento'], ['TipoVtrSanitized', 'Tipo VTR', 'tipo_vtr'], ['AnoChegadaSanitized', 'Ano chegada', 'ano_chegada', 'n'], ['AnoFabricacaoSanitized', 'Ano fabricação', 'ano_fabricacao', 'n'], ['AnoModeloSanitized', 'Ano modelo', 'ano_modelo', 'n'], ['ValorSanitized', 'Valor', 'valor', 'n'], ['CorSanitized', 'Cor', 'cor'], ['ObmSanitized', 'OBM', 'obm']];
+    let editing = null;
+    function escAttr(v) {return String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}
+    function openEdit(id) {editing = DATA.find(r => String(r._dbId) === decodeURIComponent(id)); if (!editing) return; document.getElementById('editError').textContent = ''; document.getElementById('editFields').innerHTML = editKeys.map(([k, l]) => `<label>${l}<input id="ed_${k}" value="${escAttr(val(editing, k))}"></label>`).join(''); document.getElementById('editModal').classList.add('open')}
+    async function saveEdit() {
+      if (!editing) return;
+      const b = {updated_at: new Date().toISOString()};
+      for (const [k, , col, type] of editKeys) {const x = document.getElementById('ed_' + k).value.trim(); if (type === 'n') {if (x !== '' && !Number.isFinite(Number(x.replace(',', '.')))) {document.getElementById('editError').textContent = 'Campo "' + col + '" precisa ser número.'; return} b[col] = x === '' ? null : Number(x.replace(',', '.'))} else b[col] = x}
+      if (!b.id) {document.getElementById('editError').textContent = 'O ID é obrigatório.'; return}
+      const btn = document.getElementById('saveEdit'); btn.disabled = true;
+      const {error} = await sb.from(TABLE).update(b).eq('id', editing._dbId);
+      btn.disabled = false;
+      if (error) {document.getElementById('editError').textContent = 'Não foi possível salvar.'; return}
+      document.getElementById('editModal').classList.remove('open'); await refreshData();
+    }
+    document.getElementById('manageTable').addEventListener('click', async e => {
+      const ed = e.target.closest('.editBtn'), del = e.target.closest('.deleteBtn');
+      if (ed) openEdit(ed.dataset.id);
+      if (del) {const id = decodeURIComponent(del.dataset.id); if (confirm('Excluir este cadastro? Esta ação não pode ser desfeita.')) {const {error} = await sb.from(TABLE).delete().eq('id', id); if (error) alert('Não foi possível excluir.'); else await refreshData()} }
+    });
+    document.getElementById('cancelEdit').onclick = () => document.getElementById('editModal').classList.remove('open');
+    document.getElementById('saveEdit').onclick = saveEdit;
+    function resetFilters() {for (const id of Object.keys(fields)) document.getElementById(id).value = ''; document.getElementById('search').value = ''; render()}
+
+    function apiRowToData(r) {return {IdSanitized: r.id ?? '', PrefixoSanitized: r.prefixo ?? '', SituacaoSanitized: r.situacao ?? '', SegmentacaoSanitized: r.segmentacao ?? '', AnoChegadaSanitized: r.ano_chegada ?? '', ValorSanitized: r.valor ?? '', TipoSanitized: r.tipo ?? '', SegmentoSanitized: r.segmento ?? '', TipoVtrSanitized: r.tipo_vtr ?? '', MarcaSanitized: r.marca ?? '', ModeloSanitized: r.modelo ?? '', AnoFabricacaoSanitized: r.ano_fabricacao ?? '', AnoModeloSanitized: r.ano_modelo ?? '', CorSanitized: r.cor ?? '', ObmSanitized: r.obm ?? '', ClassificacaoSanitized: r.classificacao ?? '', _dbId: r.id}}
+    // O Supabase entrega no máximo 1000 linhas por vez: busca em páginas.
+    async function loadAll() {
+      let all = [];
+      for (let from = 0; ; from += 1000) {
+        const {data, error} = await sb.from(TABLE).select('*').order('id').range(from, from + 999);
+        if (error) throw error;
+        all = all.concat(data);
+        if (data.length < 1000) break;
+      }
+      return all.map(apiRowToData).sort((x, y) => String(x.IdSanitized).localeCompare(String(y.IdSanitized), 'pt-BR', {numeric: true}));
+    }
+    function setSub() {document.getElementById('sub').textContent = `Análise interativa do inventário • ${DATA.length.toLocaleString('pt-BR')} registros • referência de idade: ${REF}`}
+    async function refreshData() {DATA = await loadAll(); fillFilters(); setSub(); render()}
+
+    function gate(msg, link) {const g = document.getElementById('gate'); g.innerHTML = esc(msg) + (link ? ` <a href="${link[0]}">${esc(link[1])}</a>` : ''); g.hidden = false}
+
+    (async () => {
+      const toLogin = () => location.replace('/?redirect=' + encodeURIComponent('/sisvtr'));
+      if (!cfg.supabaseUrl || !window.supabase) return gate('Configuração ausente (config.js).');
+      sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {auth: {persistSession: true, autoRefreshToken: true}});
+      const withTimeout = (p, ms = 15000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+      try {
+        const {data} = await withTimeout(sb.auth.getSession());
+        if (!data.session) return toLogin();
+        const adm = await withTimeout(sb.rpc('is_admin'));
+        if (adm.error || adm.data !== true) return location.replace('/?denied=1');
+        document.getElementById('userEmail').textContent = data.session.user.email || '';
+        DATA = await withTimeout(loadAll(), 30000);
+      } catch (e) {
+        const missing = e && (e.code === '42P01' || e.code === 'PGRST205' || /does not exist|could not find the table/i.test(e.message || ''));
+        return gate(missing ? 'A base do SisVTR ainda não foi carregada no Supabase (rodar o SQL do SisVTR — ver README).' : 'Não foi possível carregar o SisVTR. Verifique a internet e recarregue a página.', ['/', 'Voltar ao portal']);
+      }
+      document.getElementById('gate').hidden = true;
+      fillFilters(); setSub();
+      Object.keys(fields).forEach(id => document.getElementById(id).addEventListener('change', render));
+      document.getElementById('search').addEventListener('input', () => {const a = filtered(); renderTable(a); renderManage(a)});
+      render();
+      document.body.classList.remove('locked');
+      if (!DATA.length) gate('A tabela do SisVTR está vazia. Rode o SQL com a base da planilha (ver README).');
+    })();
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {if (sb) await sb.auth.signOut({scope: 'local'}); location.replace('/')});
+  </script>
+</body>
+
+</html>
