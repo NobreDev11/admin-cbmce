@@ -28,6 +28,14 @@ DROP POLICY IF EXISTS "admin update portal pages" ON public.portal_pages;
 CREATE POLICY "admin update portal pages" ON public.portal_pages
   FOR UPDATE TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
+-- Link oficial (Escala). Mesmo conteúdo de portal_pages_link.sql.
+ALTER TABLE public.portal_pages
+  ADD COLUMN IF NOT EXISTS link text NOT NULL DEFAULT '';
+ALTER TABLE public.portal_pages DROP CONSTRAINT IF EXISTS portal_pages_link_check;
+ALTER TABLE public.portal_pages
+  ADD CONSTRAINT portal_pages_link_check
+  CHECK (link = '' OR (char_length(link) <= 500 AND link ~ '^https://(drive|docs)\.google\.com/'));
+
 -- Estado inicial. A Escala começa desativada (ative pelo portal quando ela estiver pública).
 INSERT INTO public.portal_pages (id, visible) VALUES
   ('checklist', true),

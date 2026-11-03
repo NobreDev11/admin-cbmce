@@ -72,6 +72,11 @@
     .switch input:focus-visible + .slider { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
     .switch input:disabled + .slider { opacity: .5; }
     .toggle-msg { font-size: 12px; color: var(--muted); padding-left: 50px; }
+    .link-label { font-size: 14px; }
+    .link-label input { width: 100%; font-size: 14px; }
+    .link-actions { display: flex; gap: 8px; }
+    .btn-small { padding: 8px 12px; font-size: 14px; width: auto; }
+    .link-row .toggle-msg { padding-left: 0; }
     .btn-alt { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
     .btn-alt:hover { background: var(--brand-soft); }
     .btn[aria-disabled="true"] { background: var(--off-soft); color: var(--off); pointer-events: none; }
@@ -151,8 +156,9 @@
       { name: "SisDirso", icon: "📅", description: "Simulador e controle de plantões de DIRSO.", url: "", button: "Abrir SisDirso", userPage: "sisdirso" },
       {
         name: "Escala de Serviço", icon: "📋",
-        description: "Lê a escala em PDF (arquivo ou link do Drive) e filtra por militar, função, data e permutas.",
-        url: "/escala/", button: "Abrir Escala", userPage: "escala"
+        description: "Consulta da escala por militar, função, data e permutas. O PDF exibido é o do link oficial abaixo.",
+        url: "/escala/", button: "Abrir Escala", userPage: "escala",
+        linkSetting: { label: "Link da escala (Google Drive)", hint: "Todos veem a escala deste link. Só muda quando você salvar outro." }
       }
     ];
 
@@ -200,6 +206,75 @@
           <span class="toggle-msg" data-msg="${esc(s.userPage)}">Carregando…</span>
         </div>`;
     }
+
+    // ---- Link oficial (ex.: PDF da Escala), gravado em portal_pages.link ----
+    const LINK_RE = /^https:\/\/(drive|docs)\.google\.com\//;
+
+    function linkHtml(s) {
+      if (!s.linkSetting || !s.userPage) return "";
+      const id = esc(s.userPage);
+      return `
+        <div class="toggle-row link-row">
+          <label class="link-label">${esc(s.linkSetting.label)}
+            <input type="url" data-link="${id}" placeholder="https://drive.google.com/file/d/…" disabled />
+          </label>
+          <div class="link-actions">
+            <button class="btn btn-alt btn-small" type="button" data-savelink="${id}" disabled>Salvar link</button>
+            <a class="btn btn-alt btn-small" data-openlink="${id}" target="_blank" rel="noopener" hidden>Ver PDF</a>
+          </div>
+          <span class="toggle-msg" data-linkmsg="${id}">${esc(s.linkSetting.hint)}</span>
+        </div>`;
+    }
+
+    function setOpenLink(id, url) {
+      const a = document.querySelector(`[data-openlink="${id}"]`);
+      if (!a) return;
+      a.hidden = !url;
+      if (url) a.href = url;
+    }
+
+    async function loadLinks() {
+      const inputs = document.querySelectorAll("[data-link]");
+      if (!inputs.length) return;
+      let rows = null;
+      try {
+        const r = await fetch(cfg.supabaseUrl + "/rest/v1/portal_pages?select=id,link", {
+          headers: { apikey: cfg.supabasePublishableKey }, cache: "no-store"
+        });
+        if (r.ok) rows = await r.json();
+      } catch { /* trata abaixo */ }
+      for (const input of inputs) {
+        const id = input.dataset.link;
+        const msg = document.querySelector(`[data-linkmsg="${id}"]`);
+        if (!rows) { msg.textContent = "Falta atualizar a tabela no Supabase (ver README)."; continue; }
+        const row = rows.find((x) => x.id === id);
+        input.value = row ? row.link || "" : "";
+        input.dataset.saved = input.value;
+        input.disabled = false;
+        document.querySelector(`[data-savelink="${id}"]`).disabled = false;
+        setOpenLink(id, input.value);
+      }
+    }
+
+    document.addEventListener("click", async (e) => {
+      const b = e.target.closest("[data-savelink]");
+      if (!b || !sbClient) return;
+      const id = b.dataset.savelink;
+      const input = document.querySelector(`[data-link="${id}"]`);
+      const msg = document.querySelector(`[data-linkmsg="${id}"]`);
+      const link = input.value.trim();
+      if (link && !LINK_RE.test(link)) { msg.textContent = "Use um link do Google Drive (https://drive.google.com/…)."; return; }
+      if (link === input.dataset.saved) { msg.textContent = "Nada mudou."; return; }
+      if (!link && !confirm("Apagar o link? A escala ficará sem PDF para o efetivo.")) return;
+      b.disabled = true; msg.textContent = "Salvando…";
+      const { error } = await sbClient.from("portal_pages")
+        .upsert({ id, link, updated_at: new Date().toISOString() });
+      b.disabled = false;
+      if (error) { msg.textContent = "Não salvou. Tente de novo."; return; }
+      input.dataset.saved = link;
+      setOpenLink(id, link);
+      msg.textContent = link ? "Link salvo. O efetivo já vê esta escala." : "Link apagado.";
+    });
 
     async function loadToggles() {
       const boxes = document.querySelectorAll("[data-page]");
@@ -250,10 +325,12 @@
                  : `<a class="btn" aria-disabled="true">Em breve</a>`}
             ${on && s.copy ? `<button class="btn btn-alt" type="button" data-copy="${esc(new URL(s.url, location.origin).href)}">Copiar link</button>` : ""}
             ${toggleHtml(s)}
+            ${linkHtml(s)}
           </article>`;
       }).join("");
       show("hubView");
       loadToggles();
+      loadLinks();
     }
 
     if (!cfg.supabaseUrl || !cfg.supabasePublishableKey || !window.supabase) {

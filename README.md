@@ -54,3 +54,8 @@ Enquanto a tabela não existir, os botões mostram "Falta criar a tabela" e a p�
 mostra Checklist e SisDirso (a Escala fica oculta até ser ativada).
 
 Para incluir uma nova página de usuário: novo bloco em `pages.js` e `userPage: "<id>"` no cartão do portal.
+
+### Link oficial da Escala
+No cartão da Escala, o responsável cola o link do PDF (Google Drive, "Qualquer pessoa com o link") e clica
+em **Salvar link**. Todo o efetivo vê a escala desse link; ninguém troca pela página da Escala.
+Fica em `portal_pages.link` (linha `escala`). **Uma vez:** rodar `supabase/portal_pages_link.sql` no SQL Editor.
