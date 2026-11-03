@@ -34,3 +34,11 @@ Preencha `url` do sistema em `SYSTEMS`. SisVTR e SisDirso têm login próprio po
 O botão "Abrir Escala" abre `/escala/`, que o `vercel.json` repassa para `https://escala-cbmce.vercel.app`
 (repo `NobreDev11/escala-cbmce`, pasta `C:\Projetos\web\CBMCE\Escala`). Mesmo endereço = mesmo login.
 Se o endereço da Escala na Vercel for outro, ajuste a regra `/escala/:path*` no `vercel.json`.
+
+## Página dos Usuários (`/usuarios`)
+Página **pública, sem login**, para distribuir ao efetivo: `https://admin-cbmce.vercel.app/usuarios`.
+Só tem links de usuário (nada administrativo). Lista em `PAGES`, no fim de `usuarios.html`:
+- Checklist de Vistoria → `https://vistoria-whatsapp.vercel.app/` (vistoria pública).
+- Escala de Serviço → "Em breve": hoje a Escala está com `acesso: "admin"` (pede login de administrador).
+- SisDirso → `https://sisdirso-cbmce.vercel.app/` (login próprio com Google).
+No portal, o cartão "Página dos Usuários" abre a página e tem o botão "Copiar link".

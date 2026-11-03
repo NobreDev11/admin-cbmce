@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>CBMCE Serviços</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚒</text></svg>" />
+  <style>
+    :root {
+      --bg: #f5f3f1; --surface: #ffffff; --text: #1d1a18; --muted: #6b635d; --border: #e4ded8;
+      --brand: #b3261e; --brand-strong: #8f1d17; --brand-soft: #fbe9e7;
+      --off: #8a817a; --off-soft: #efebe7;
+      --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.05);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #161312; --surface: #211d1b; --text: #f2ede9; --muted: #a89f98; --border: #362f2b;
+        --brand: #c7372e; --brand-strong: #e0574c; --brand-soft: #3a1f1c;
+        --off: #9a918a; --off-soft: #2b2522; --shadow: none;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column;
+    }
+    header { background: var(--brand); color: #fff; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; width: 100%; }
+    .bar { display: flex; align-items: center; gap: 12px; padding: 18px 16px; }
+    .logo { width: 44px; height: 44px; border-radius: 10px; background: rgba(255,255,255,.15);
+      display: grid; place-items: center; font-size: 24px; flex-shrink: 0; }
+    .bar h1 { margin: 0; font-size: 20px; letter-spacing: .02em; }
+    .bar p { margin: 2px 0 0; font-size: 13px; opacity: .85; }
+    main { flex: 1; padding: 24px 0 40px; }
+    .intro { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
+    .list { display: flex; flex-direction: column; gap: 12px; }
+    .item {
+      display: flex; align-items: center; gap: 14px; padding: 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: var(--shadow); text-decoration: none; color: inherit; transition: border-color .15s, transform .15s;
+    }
+    a.item:hover { border-color: var(--brand); }
+    a.item:active { transform: scale(.99); }
+    a.item:focus-visible { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
+    .icon { width: 48px; height: 48px; border-radius: 12px; background: var(--brand-soft);
+      display: grid; place-items: center; font-size: 24px; flex-shrink: 0; }
+    .text { flex: 1; min-width: 0; }
+    .item h2 { margin: 0; font-size: 17px; }
+    .item p { margin: 3px 0 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
+    .go { color: var(--brand); font-size: 22px; font-weight: 700; flex-shrink: 0; }
+    .item.soon { opacity: .7; }
+    .tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+      color: var(--off); background: var(--off-soft); padding: 3px 8px; border-radius: 999px; flex-shrink: 0; }
+    footer { color: var(--muted); font-size: 12px; padding: 16px 0 24px; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <div class="logo" aria-hidden="true">🚒</div>
+      <div>
+        <h1>CBMCE Serviços</h1>
+        <p>Acesso rápido às páginas do efetivo</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <p class="intro">Escolha o que deseja acessar.</p>
+      <nav class="list" id="pages" aria-label="Páginas"></nav>
+    </div>
+  </main>
+
+  <footer>Corpo de Bombeiros Militar do Ceará</footer>
+
+  <script>
+    // Páginas para os usuários (nada administrativo aqui).
+    // Para ativar uma página, preencha "url". Para adicionar, copie um bloco.
+    const PAGES = [
+      {
+        name: "Checklist de Vistoria", icon: "✅",
+        description: "Preencher a vistoria e enviar o resultado pelo WhatsApp.",
+        url: "https://vistoria-whatsapp.vercel.app/"
+      },
+      {
+        name: "Escala de Serviço", icon: "📋",
+        description: "Consultar a escala por militar, função e data.",
+        url: ""
+      },
+      {
+        name: "SisDirso", icon: "📅",
+        description: "Simular e controlar plantões de DIRSO.",
+        url: "https://sisdirso-cbmce.vercel.app/"
+      }
+    ];
+
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    document.getElementById("pages").innerHTML = PAGES.map((p) => {
+      const inner = `
+        <div class="icon" aria-hidden="true">${esc(p.icon)}</div>
+        <div class="text"><h2>${esc(p.name)}</h2><p>${esc(p.description)}</p></div>`;
+      return p.url
+        ? `<a class="item" href="${esc(p.url)}">${inner}<span class="go" aria-hidden="true">›</span></a>`
+        : `<div class="item soon">${inner}<span class="tag">Em breve</span></div>`;
+    }).join("");
+  </script>
+</body>
+</html>

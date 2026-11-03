@@ -60,6 +60,8 @@
     .btn:hover { background: var(--brand-strong); }
     .btn:focus-visible, input:focus-visible, .ghost:focus-visible { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
     .btn:disabled { opacity: .7; cursor: wait; }
+    .btn-alt { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
+    .btn-alt:hover { background: var(--brand-soft); }
     .btn[aria-disabled="true"] { background: var(--off-soft); color: var(--off); pointer-events: none; }
     .login { max-width: 380px; margin: 24px auto 0; background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px; }
@@ -123,6 +125,11 @@
     // por isso o login feito aqui já vale lá.
     const SYSTEMS = [
       {
+        name: "Página dos Usuários", icon: "👥",
+        description: "Página pública (sem login) com os links para o efetivo: Checklist, Escala e outras páginas de usuário. Distribua este link.",
+        url: "/usuarios", button: "Abrir página", copy: true
+      },
+      {
         name: "Checklist de Vistoria", icon: "✅",
         description: "Blocos, itens, perguntas, vistorias recebidas, resumo, acessos e configurações do checklist.",
         url: "/admin", button: "Abrir admin do Checklist"
@@ -155,6 +162,15 @@
       } catch { return null; }
     }
 
+    document.addEventListener("click", async (e) => {
+      const b = e.target.closest("[data-copy]");
+      if (!b) return;
+      const link = b.dataset.copy;
+      try { await navigator.clipboard.writeText(link); b.textContent = "Link copiado ✓"; }
+      catch { window.prompt("Copie o link:", link); return; }
+      setTimeout(() => { b.textContent = "Copiar link"; }, 2000);
+    });
+
     function renderHub(email) {
       $("userEmail").textContent = email;
       $("userBox").hidden = false;
@@ -172,6 +188,7 @@
             <p>${esc(s.description)}</p>
             ${on ? `<a class="btn" href="${esc(s.url)}">${esc(s.button)} →</a>`
                  : `<a class="btn" aria-disabled="true">Em breve</a>`}
+            ${on && s.copy ? `<button class="btn btn-alt" type="button" data-copy="${esc(new URL(s.url, location.origin).href)}">Copiar link</button>` : ""}
           </article>`;
       }).join("");
       show("hubView");
