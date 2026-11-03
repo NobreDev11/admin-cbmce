@@ -60,6 +60,18 @@
     .btn:hover { background: var(--brand-strong); }
     .btn:focus-visible, input:focus-visible, .ghost:focus-visible { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
     .btn:disabled { opacity: .7; cursor: wait; }
+    .toggle-row { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .switch { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 600; flex-direction: row; }
+    .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .slider { width: 40px; height: 22px; border-radius: 999px; background: var(--off-soft); border: 1px solid var(--border);
+      position: relative; flex-shrink: 0; transition: background .15s; }
+    .slider::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+      background: var(--off); transition: transform .15s, background .15s; }
+    .switch input:checked + .slider { background: var(--ok); border-color: var(--ok); }
+    .switch input:checked + .slider::after { transform: translateX(18px); background: #fff; }
+    .switch input:focus-visible + .slider { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
+    .switch input:disabled + .slider { opacity: .5; }
+    .toggle-msg { font-size: 12px; color: var(--muted); padding-left: 50px; }
     .btn-alt { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
     .btn-alt:hover { background: var(--brand-soft); }
     .btn[aria-disabled="true"] { background: var(--off-soft); color: var(--off); pointer-events: none; }
@@ -119,6 +131,7 @@
 
   <script src="vendor/supabase.js"></script>
   <script src="config.js"></script>
+  <script src="pages.js"></script>
   <script>
     // Sistemas do portal. Para ativar um sistema, preencha "url".
     // O Checklist usa "/admin": o painel é servido neste mesmo endereço (ver vercel.json),
@@ -132,20 +145,21 @@
       {
         name: "Checklist de Vistoria", icon: "✅",
         description: "Blocos, itens, perguntas, vistorias recebidas, resumo, acessos e configurações do checklist.",
-        url: "/admin", button: "Abrir admin do Checklist"
+        url: "/admin", button: "Abrir admin do Checklist", userPage: "checklist"
       },
       { name: "SisVTR", icon: "🚑", description: "Dashboard e cadastro de viaturas.", url: "", button: "Abrir SisVTR" },
-      { name: "SisDirso", icon: "📅", description: "Simulador e controle de plantões de DIRSO.", url: "", button: "Abrir SisDirso" },
+      { name: "SisDirso", icon: "📅", description: "Simulador e controle de plantões de DIRSO.", url: "", button: "Abrir SisDirso", userPage: "sisdirso" },
       {
         name: "Escala de Serviço", icon: "📋",
         description: "Lê a escala em PDF (arquivo ou link do Drive) e filtra por militar, função, data e permutas.",
-        url: "/escala/", button: "Abrir Escala"
+        url: "/escala/", button: "Abrir Escala", userPage: "escala"
       }
     ];
 
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const cfg = window.ADMIN_CONFIG || {};
+    let sbClient = null; // criado mais abaixo, depois do login
 
     function show(view) {
       for (const v of ["loadingView", "loginView", "hubView"]) $(v).hidden = v !== view;
@@ -171,6 +185,52 @@
       setTimeout(() => { b.textContent = "Copiar link"; }, 2000);
     });
 
+    // ---- Botões "Visível na página dos usuários" (tabela portal_pages no Supabase) ----
+    const userPageIds = new Set((window.USER_PAGES || []).filter((p) => p.url).map((p) => p.id));
+
+    function toggleHtml(s) {
+      if (!s.userPage || !userPageIds.has(s.userPage)) return "";
+      return `
+        <div class="toggle-row">
+          <label class="switch">
+            <input type="checkbox" data-page="${esc(s.userPage)}" disabled />
+            <span class="slider" aria-hidden="true"></span>
+            <span class="switch-label">Visível na página dos usuários</span>
+          </label>
+          <span class="toggle-msg" data-msg="${esc(s.userPage)}">Carregando…</span>
+        </div>`;
+    }
+
+    async function loadToggles() {
+      const boxes = document.querySelectorAll("[data-page]");
+      const res = await window.loadPageVisibility(cfg);
+      for (const box of boxes) {
+        const msg = document.querySelector(`[data-msg="${box.dataset.page}"]`);
+        if (!res.ok) { msg.textContent = "Não foi possível carregar."; continue; }
+        if (res.missing) { msg.textContent = "Falta criar a tabela no Supabase (ver README)."; continue; }
+        box.checked = window.isPageVisible(window.USER_PAGES.find((p) => p.id === box.dataset.page), res.visible);
+        box.disabled = false;
+        msg.textContent = box.checked ? "Aparece para o efetivo" : "Oculta do efetivo";
+      }
+    }
+
+    document.addEventListener("change", async (e) => {
+      const box = e.target.closest("[data-page]");
+      if (!box || !sbClient) return;
+      const id = box.dataset.page, visible = box.checked;
+      const msg = document.querySelector(`[data-msg="${id}"]`);
+      box.disabled = true; msg.textContent = "Salvando…";
+      const { error } = await sbClient.from("portal_pages")
+        .upsert({ id, visible, updated_at: new Date().toISOString() });
+      box.disabled = false;
+      if (error) {
+        box.checked = !visible;
+        msg.textContent = "Não salvou. Tente de novo.";
+      } else {
+        msg.textContent = visible ? "Aparece para o efetivo" : "Oculta do efetivo";
+      }
+    });
+
     function renderHub(email) {
       $("userEmail").textContent = email;
       $("userBox").hidden = false;
@@ -189,9 +249,11 @@
             ${on ? `<a class="btn" href="${esc(s.url)}">${esc(s.button)} →</a>`
                  : `<a class="btn" aria-disabled="true">Em breve</a>`}
             ${on && s.copy ? `<button class="btn btn-alt" type="button" data-copy="${esc(new URL(s.url, location.origin).href)}">Copiar link</button>` : ""}
+            ${toggleHtml(s)}
           </article>`;
       }).join("");
       show("hubView");
+      loadToggles();
     }
 
     if (!cfg.supabaseUrl || !cfg.supabasePublishableKey || !window.supabase) {
@@ -202,6 +264,7 @@
       const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
         auth: { persistSession: true, autoRefreshToken: true }
       });
+      sbClient = sb;
 
       // Nenhuma etapa pode deixar a tela travada: depois de 15 s vira erro.
       const withTimeout = (p, ms = 15000) => Promise.race([

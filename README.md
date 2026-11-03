@@ -37,8 +37,20 @@ Se o endereço da Escala na Vercel for outro, ajuste a regra `/escala/:path*` no
 
 ## Página dos Usuários (`/usuarios`)
 Página **pública, sem login**, para distribuir ao efetivo: `https://admin-cbmce.vercel.app/usuarios`.
-Só tem links de usuário (nada administrativo). Lista em `PAGES`, no fim de `usuarios.html`:
+Só tem links de usuário (nada administrativo). As páginas ficam em `pages.js`:
 - Checklist de Vistoria → `https://vistoria-whatsapp.vercel.app/` (vistoria pública).
-- Escala de Serviço → "Em breve": hoje a Escala está com `acesso: "admin"` (pede login de administrador).
+- Escala de Serviço → `https://escala-cbmce.vercel.app/` (pública a partir do PR #2 do `escala-cbmce`).
 - SisDirso → `https://sisdirso-cbmce.vercel.app/` (login próprio com Google).
+
 No portal, o cartão "Página dos Usuários" abre a página e tem o botão "Copiar link".
+
+### Ativar/desativar páginas para o efetivo
+Cada cartão do portal com página de usuário tem o botão **"Visível na página dos usuários"**.
+Desligado = a página some de `/usuarios`. A escolha fica no Supabase, tabela `portal_pages`
+(leitura pública, alteração só por administrador).
+
+**Criar a tabela (uma vez):** Supabase → SQL Editor → colar `supabase/portal_pages.sql` → Run.
+Enquanto a tabela não existir, os botões mostram "Falta criar a tabela" e a página dos usuários
+mostra Checklist e SisDirso (a Escala fica oculta até ser ativada).
+
+Para incluir uma nova página de usuário: novo bloco em `pages.js` e `userPage: "<id>"` no cartão do portal.

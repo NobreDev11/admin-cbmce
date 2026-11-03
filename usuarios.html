@@ -52,6 +52,8 @@
     .item.soon { opacity: .7; }
     .tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
       color: var(--off); background: var(--off-soft); padding: 3px 8px; border-radius: 999px; flex-shrink: 0; }
+    .retry { font: inherit; font-weight: 600; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--brand);
+      background: transparent; color: var(--brand); cursor: pointer; }
     footer { color: var(--muted); font-size: 12px; padding: 16px 0 24px; text-align: center; }
   </style>
 </head>
@@ -75,36 +77,40 @@
 
   <footer>Corpo de Bombeiros Militar do Ceará</footer>
 
+  <script src="config.js"></script>
+  <script src="pages.js"></script>
   <script>
-    // Páginas para os usuários (nada administrativo aqui).
-    // Para ativar uma página, preencha "url". Para adicionar, copie um bloco.
-    const PAGES = [
-      {
-        name: "Checklist de Vistoria", icon: "✅",
-        description: "Preencher a vistoria e enviar o resultado pelo WhatsApp.",
-        url: "https://vistoria-whatsapp.vercel.app/"
-      },
-      {
-        name: "Escala de Serviço", icon: "📋",
-        description: "Consultar a escala por militar, função e data.",
-        url: ""
-      },
-      {
-        name: "SisDirso", icon: "📅",
-        description: "Simular e controlar plantões de DIRSO.",
-        url: "https://sisdirso-cbmce.vercel.app/"
-      }
-    ];
-
+    // As páginas vêm de pages.js. O que aparece é decidido no portal ADMIN
+    // (botão "Visível na página dos usuários"), gravado no Supabase.
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    document.getElementById("pages").innerHTML = PAGES.map((p) => {
-      const inner = `
-        <div class="icon" aria-hidden="true">${esc(p.icon)}</div>
-        <div class="text"><h2>${esc(p.name)}</h2><p>${esc(p.description)}</p></div>`;
-      return p.url
-        ? `<a class="item" href="${esc(p.url)}">${inner}<span class="go" aria-hidden="true">›</span></a>`
-        : `<div class="item soon">${inner}<span class="tag">Em breve</span></div>`;
-    }).join("");
+    const box = document.getElementById("pages");
+
+    function render(pages) {
+      if (!pages.length) {
+        box.innerHTML = '<p class="intro">Nenhuma página disponível no momento.</p>';
+        return;
+      }
+      box.innerHTML = pages.map((p) => `
+        <a class="item" href="${esc(p.url)}">
+          <div class="icon" aria-hidden="true">${esc(p.icon)}</div>
+          <div class="text"><h2>${esc(p.name)}</h2><p>${esc(p.description)}</p></div>
+          <span class="go" aria-hidden="true">›</span>
+        </a>`).join("");
+    }
+
+    async function start() {
+      box.innerHTML = '<p class="intro">Carregando…</p>';
+      const cfg = window.ADMIN_CONFIG || {};
+      const res = await window.loadPageVisibility(cfg);
+      if (!res.ok) {
+        box.innerHTML = '<p class="intro">Não foi possível carregar as páginas. Verifique a internet.</p>' +
+          '<button class="retry" type="button" id="retry">Tentar de novo</button>';
+        document.getElementById("retry").onclick = start;
+        return;
+      }
+      render(window.USER_PAGES.filter((p) => p.url && window.isPageVisible(p, res.visible)));
+    }
+    start();
   </script>
 </body>
 </html>
