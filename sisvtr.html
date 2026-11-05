@@ -421,6 +421,8 @@
       }
     }
   </style>
+  <!-- Estatísticas de uso anônimas (painel central CBMCE) -->
+  <script defer src="https://cbmce-aluno-escala-atgb.vercel.app/rastro.js?s=sisvtr"></script>
 </head>
 
 <body class="locked">
@@ -436,7 +438,7 @@
       <div><label>Tipo</label><select id="tipo"></select></div>
       <div><label>Segmentação</label><select id="segmentacao"></select></div>
       <div><label>Marca</label><select id="marca"></select></div>
-      <div style="grid-column:1/-1"><button onclick="resetFilters()">Limpar filtros</button></div>
+      <div style="grid-column:1/-1"><button onclick="resetFilters()" data-estat="limpar_filtros">Limpar filtros</button></div>
     </section>
     <section class="kpis" id="kpis"></section>
     <section class="grid">
@@ -487,7 +489,7 @@
       <div class="modal-box">
         <h2>Editar item</h2>
         <div class="modal-grid" id="editFields"></div>
-        <div class="modal-actions"><button class="small-btn" id="cancelEdit">Cancelar</button><button class="small-btn" id="saveEdit">Salvar alterações</button></div>
+        <div class="modal-actions"><button class="small-btn" id="cancelEdit">Cancelar</button><button class="small-btn" id="saveEdit" data-estat="salvar_edicao">Salvar alterações</button></div>
         <div class="login-error" id="editError"></div>
       </div>
     </div>
@@ -550,7 +552,7 @@
     function renderManage(a) {
       const x = searchFilter(a); const shown = x.slice(0, 250); const el = document.getElementById('manageTable');
       if (!shown.length) {el.innerHTML = '<div class="empty">Nenhum cadastro encontrado.</div>'; return}
-      el.innerHTML = '<table><thead><tr><th>Prefixo</th><th>ID</th><th>Descrição / Modelo</th><th>Classificação</th><th>Marca</th><th>Tipo</th><th>Situação</th><th>OBM</th><th>Ações</th></tr></thead><tbody>' + shown.map(r => `<tr><td>${display(r.PrefixoSanitized)}</td><td>${display(r.IdSanitized)}</td><td>${display(r.ModeloSanitized)}</td><td>${display(r.ClassificacaoSanitized)}</td><td>${display(r.MarcaSanitized)}</td><td>${display(r.TipoSanitized)}</td><td>${display(r.SituacaoSanitized)}</td><td>${display(r.ObmSanitized)}</td><td class="actions-cell"><button class="small-btn editBtn" data-id="${encodeURIComponent(r._dbId)}">Editar</button><button class="small-btn danger deleteBtn" data-id="${encodeURIComponent(r._dbId)}">Excluir</button></td></tr>`).join('') + '</tbody></table>' + (x.length > 250 ? '<div class="foot" style="padding:10px">Exibindo 250 de ' + x.length + '.</div>' : '');
+      el.innerHTML = '<table><thead><tr><th>Prefixo</th><th>ID</th><th>Descrição / Modelo</th><th>Classificação</th><th>Marca</th><th>Tipo</th><th>Situação</th><th>OBM</th><th>Ações</th></tr></thead><tbody>' + shown.map(r => `<tr><td>${display(r.PrefixoSanitized)}</td><td>${display(r.IdSanitized)}</td><td>${display(r.ModeloSanitized)}</td><td>${display(r.ClassificacaoSanitized)}</td><td>${display(r.MarcaSanitized)}</td><td>${display(r.TipoSanitized)}</td><td>${display(r.SituacaoSanitized)}</td><td>${display(r.ObmSanitized)}</td><td class="actions-cell"><button class="small-btn editBtn" data-estat="editar_item" data-id="${encodeURIComponent(r._dbId)}">Editar</button><button class="small-btn danger deleteBtn" data-estat="excluir_item" data-id="${encodeURIComponent(r._dbId)}">Excluir</button></td></tr>`).join('') + '</tbody></table>' + (x.length > 250 ? '<div class="foot" style="padding:10px">Exibindo 250 de ' + x.length + '.</div>' : '');
     }
 
     const editKeys = [['IdSanitized', 'ID', 'id'], ['PrefixoSanitized', 'Prefixo', 'prefixo'], ['ModeloSanitized', 'Descrição / Modelo', 'modelo'], ['ClassificacaoSanitized', 'Classificação', 'classificacao'], ['MarcaSanitized', 'Marca', 'marca'], ['TipoSanitized', 'Tipo', 'tipo'], ['SituacaoSanitized', 'Situação', 'situacao'], ['SegmentacaoSanitized', 'Segmentação', 'segmentacao'], ['SegmentoSanitized', 'Segmento', 'segmento'], ['TipoVtrSanitized', 'Tipo VTR', 'tipo_vtr'], ['AnoChegadaSanitized', 'Ano chegada', 'ano_chegada', 'n'], ['AnoFabricacaoSanitized', 'Ano fabricação', 'ano_fabricacao', 'n'], ['AnoModeloSanitized', 'Ano modelo', 'ano_modelo', 'n'], ['CorSanitized', 'Cor', 'cor'], ['ObmSanitized', 'OBM', 'obm']];
@@ -613,6 +615,9 @@
       document.getElementById('gate').hidden = true;
       fillFilters(); setSub();
       Object.keys(fields).forEach(id => document.getElementById(id).addEventListener('change', render));
+      // Estatísticas: qual filtro foi usado
+      Object.keys(fields).forEach(id => document.getElementById(id).addEventListener('change', () => window.estat && window.estat('filtro', id)));
+      let tEstat; document.getElementById('search').addEventListener('input', e => {clearTimeout(tEstat); tEstat = setTimeout(() => {const q = e.target.value.trim(); if (q.length >= 2 && window.estat) {window.estat('filtro', 'pesquisa'); window.estat('busca', q.toLowerCase())}}, 1500)});
       document.getElementById('search').addEventListener('input', () => {const a = filtered(); renderTable(a); renderManage(a)});
       render();
       document.body.classList.remove('locked');

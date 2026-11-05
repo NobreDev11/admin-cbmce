@@ -56,6 +56,8 @@
       background: transparent; color: var(--brand); cursor: pointer; }
     footer { color: var(--muted); font-size: 12px; padding: 16px 0 24px; text-align: center; }
   </style>
+  <!-- Estatísticas de uso anônimas (painel central CBMCE) -->
+  <script defer src="https://cbmce-aluno-escala-atgb.vercel.app/rastro.js?s=portal"></script>
 </head>
 <body>
   <header>
@@ -91,7 +93,7 @@
         return;
       }
       box.innerHTML = pages.map((p) => `
-        <a class="item" href="${esc(p.url)}">
+        <a class="item" href="${esc(p.url)}" data-estat="usuarios_abrir_${esc(p.id)}">
           <div class="icon" aria-hidden="true">${esc(p.icon)}</div>
           <div class="text"><h2>${esc(p.name)}</h2><p>${esc(p.description)}</p></div>
           <span class="go" aria-hidden="true">›</span>

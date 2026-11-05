@@ -92,6 +92,8 @@
     footer { color: var(--muted); font-size: 12px; padding: 16px 0 24px; text-align: center; }
     @media (max-width: 520px) { .user span { display: none; } }
   </style>
+  <!-- Estatísticas de uso anônimas (painel central CBMCE) -->
+  <script defer src="https://cbmce-aluno-escala-atgb.vercel.app/rastro.js?s=portal"></script>
 </head>
 <body>
   <header>
@@ -219,8 +221,8 @@
             <input type="url" data-link="${id}" placeholder="https://drive.google.com/file/d/…" disabled />
           </label>
           <div class="link-actions">
-            <button class="btn btn-alt btn-small" type="button" data-savelink="${id}" disabled>Salvar link</button>
-            <a class="btn btn-alt btn-small" data-openlink="${id}" target="_blank" rel="noopener" hidden>Ver PDF</a>
+            <button class="btn btn-alt btn-small" type="button" data-estat="salvar_link_escala" data-savelink="${id}" disabled>Salvar link</button>
+            <a class="btn btn-alt btn-small" data-estat="ver_pdf_escala" data-openlink="${id}" target="_blank" rel="noopener" hidden>Ver PDF</a>
           </div>
           <span class="toggle-msg" data-linkmsg="${id}">${esc(s.linkSetting.hint)}</span>
         </div>`;
@@ -321,9 +323,9 @@
               </div>
             </div>
             <p>${esc(s.description)}</p>
-            ${on ? `<a class="btn" href="${esc(s.url)}">${esc(s.button)} →</a>`
+            ${on ? `<a class="btn" href="${esc(s.url)}" data-estat="abrir_${esc(s.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_"))}">${esc(s.button)} →</a>`
                  : `<a class="btn" aria-disabled="true">Em breve</a>`}
-            ${on && s.copy ? `<button class="btn btn-alt" type="button" data-copy="${esc(new URL(s.url, location.origin).href)}">Copiar link</button>` : ""}
+            ${on && s.copy ? `<button class="btn btn-alt" type="button" data-estat="copiar_link" data-copy="${esc(new URL(s.url, location.origin).href)}">Copiar link</button>` : ""}
             ${toggleHtml(s)}
             ${linkHtml(s)}
           </article>`;
