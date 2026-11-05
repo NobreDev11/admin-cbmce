@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin Mata Branca</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>" />
+  <style>
+    /* Mesmo visual do portal ADMIN CBMCE. */
+    :root {
+      --bg: #f5f3f1; --surface: #ffffff; --text: #1d1a18; --muted: #6b635d; --border: #e4ded8;
+      --brand: #b3261e; --brand-strong: #8f1d17; --brand-soft: #fbe9e7;
+      --ok: #1e7a46; --ok-soft: #e3f3ea; --alt: #9a5b00; --alt-soft: #fdf1dc; --off: #8a817a; --off-soft: #efebe7;
+      --err: #a3231b; --err-soft: #fdecea;
+      --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.05);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #161312; --surface: #211d1b; --text: #f2ede9; --muted: #a89f98; --border: #362f2b;
+        --brand: #c7372e; --brand-strong: #e0574c; --brand-soft: #3a1f1c;
+        --ok: #5fc48a; --ok-soft: #1b3326; --alt: #f0b35a; --alt-soft: #3a2c16; --off: #9a918a; --off-soft: #2b2522;
+        --err: #f19a92; --err-soft: #3a1f1c; --shadow: none;
+      }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+    header { background: var(--brand); color: #fff; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; width: 100%; }
+    .bar { display: flex; align-items: center; gap: 12px; padding: 16px; flex-wrap: wrap; }
+    .logo { width: 42px; height: 42px; border-radius: 10px; background: rgba(255,255,255,.15); display: grid; place-items: center; font-size: 22px; flex-shrink: 0; }
+    .bar h1 { margin: 0; font-size: 19px; }
+    .bar p { margin: 2px 0 0; font-size: 13px; opacity: .85; }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; flex-wrap: wrap; }
+    .user span { opacity: .9; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ghost { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.35); padding: 7px 12px; border-radius: 8px;
+      font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .ghost:hover { background: rgba(255,255,255,.25); }
+    .tabs { display: flex; gap: 4px; padding: 0 16px; overflow-x: auto; }
+    .tab { background: transparent; color: #fff; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font: inherit; font-weight: 600;
+      cursor: pointer; opacity: .8; white-space: nowrap; }
+    .tab[aria-selected="true"] { opacity: 1; border-bottom-color: #fff; }
+    main { padding: 22px 0 60px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    h2 { margin: 0 0 12px; font-size: 17px; }
+    h3 { margin: 0; font-size: 15px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+    label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; color: var(--muted); }
+    input, select, textarea { font: inherit; font-size: 14px; padding: 9px 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+    input[type="checkbox"] { width: 18px; height: 18px; padding: 0; accent-color: var(--brand); }
+    :focus-visible { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; border-radius: 9px; font: inherit; font-size: 14px;
+      font-weight: 600; background: var(--brand); color: #fff; border: 0; cursor: pointer; text-decoration: none; }
+    .btn:hover { background: var(--brand-strong); }
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .btn.alt { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
+    .btn.alt:hover { background: var(--brand-soft); }
+    .btn.small { padding: 5px 9px; font-size: 13px; }
+    .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 32px; height: 32px; cursor: pointer;
+      font-size: 14px; flex-shrink: 0; }
+    .icon-btn:hover { background: var(--off-soft); }
+    .icon-btn.danger { color: var(--err); }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .kpi .n { font-size: 26px; font-weight: 800; margin: 4px 0; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr.v-row { cursor: pointer; }
+    tr.v-row:hover td { background: var(--off-soft); }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .pill.ok { background: var(--ok-soft); color: var(--ok); }
+    .pill.alt { background: var(--alt-soft); color: var(--alt); }
+    .pill.off { background: var(--off-soft); color: var(--off); }
+    .detail td { background: var(--bg); }
+    .detail ul { margin: 6px 0 0; padding-left: 18px; }
+    .detail li { margin: 3px 0; }
+    .empty { padding: 20px; text-align: center; color: var(--muted); }
+    .gate { max-width: 620px; margin: 60px auto; text-align: center; line-height: 1.5; }
+    .gate a { color: var(--brand); font-weight: 700; }
+    .list { display: flex; flex-direction: column; gap: 8px; }
+    .line { display: flex; gap: 8px; align-items: center; }
+    .line input[type="text"] { flex: 1; min-width: 0; }
+    .check { flex-direction: row; align-items: center; gap: 6px; font-weight: 500; color: var(--text); white-space: nowrap; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 12px; border-radius: 999px; background: var(--off-soft); font-size: 14px; font-weight: 600; }
+    .chip button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px; border-radius: 999px; width: 24px; height: 24px; }
+    .chip button:hover { background: var(--border); color: var(--err); }
+    .block-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+    .block-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .block-head input[type="text"] { flex: 1; min-width: 160px; font-weight: 700; }
+    .items { padding-left: 12px; border-left: 3px solid var(--border); }
+    .savebar { position: sticky; bottom: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px;
+      display: flex; gap: 10px; align-items: center; justify-content: space-between; box-shadow: var(--shadow); flex-wrap: wrap; }
+    .msg { font-size: 14px; }
+    .msg.err { color: var(--err); }
+    .msg.ok { color: var(--ok); }
+    @media (max-width: 800px) {
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .grid2 { grid-template-columns: 1fr; }
+      .user span { display: none; }
+      .hide-sm { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <div class="logo" aria-hidden="true">🌳</div>
+      <div>
+        <h1>Checklist - Mata Branca</h1>
+        <p>Administração · VTR DIRSO Florestal · 7ª CIA/1º BBM</p>
+      </div>
+      <div class="user" id="userBox" hidden>
+        <span id="userEmail"></span>
+        <a class="ghost" href="/mata-branca" target="_blank" rel="noopener">Abrir checklist ↗</a>
+        <a class="ghost" href="/">← Portal</a>
+        <button class="ghost" id="logoutBtn" type="button">Sair</button>
+      </div>
+    </div>
+    <nav class="wrap tabs" role="tablist" id="tabs" hidden>
+      <button class="tab" role="tab" data-tab="resumo" aria-selected="true">Resumo</button>
+      <button class="tab" role="tab" data-tab="vistorias" aria-selected="false">Vistorias</button>
+      <button class="tab" role="tab" data-tab="checklist" aria-selected="false">Checklist</button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <div class="card gate" id="gate">Carregando…</div>
+
+    <!-- ===== Resumo ===== -->
+    <section id="tab-resumo" class="stack" hidden>
+      <div class="row">
+        <label>Período
+          <select id="periodo">
+            <option value="7">Últimos 7 dias</option>
+            <option value="30" selected>Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+            <option value="0">Tudo</option>
+          </select>
+        </label>
+        <button class="btn alt" type="button" data-reload>↻ Atualizar</button>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="grid2">
+        <div class="card"><h2>Por VTR</h2><div class="table-wrap" id="porVtr"></div></div>
+        <div class="card"><h2>Itens com mais alterações</h2><div class="table-wrap" id="topItens"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== Vistorias ===== -->
+    <section id="tab-vistorias" class="stack" hidden>
+      <div class="card stack">
+        <div class="row">
+          <label>VTR <select id="fVtr"></select></label>
+          <label>De <input id="fDe" type="date" /></label>
+          <label>Até <input id="fAte" type="date" /></label>
+          <label>Situação
+            <select id="fSit"><option value="">Todas</option><option value="alt">Com alteração</option><option value="ok">Sem alteração</option></select>
+          </label>
+          <label style="flex:1;min-width:180px">Pesquisar <input id="fBusca" placeholder="Oficial, COV, item, observação…" /></label>
+        </div>
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <span class="muted" id="vCount"></span>
+          <div class="row">
+            <button class="btn alt" type="button" data-reload>↻ Atualizar</button>
+            <button class="btn alt" type="button" id="csvBtn">Exportar CSV</button>
+          </div>
+        </div>
+      </div>
+      <div class="card table-wrap" id="vTable"></div>
+    </section>
+
+    <!-- ===== Checklist (edição) ===== -->
+    <section id="tab-checklist" class="stack" hidden>
+      <p class="muted" style="margin:0">O que for salvo aqui aparece na página do checklist na próxima vez que ela for aberta.
+        Vistorias já recebidas não mudam.</p>
+      <div class="card stack">
+        <h2 style="margin:0">Título</h2>
+        <label>Título do relatório (aparece na mensagem do WhatsApp)
+          <input type="text" id="eTitle" maxlength="80" />
+        </label>
+      </div>
+      <div class="card stack">
+        <h2 style="margin:0">VTRs</h2>
+        <div class="chips" id="eVtrs"></div>
+        <div class="line" style="max-width:420px">
+          <input type="text" id="newVtr" placeholder="Nova VTR (ex.: ABT 34)" maxlength="60" />
+          <button class="btn alt" type="button" id="addVtr">Adicionar</button>
+        </div>
+        <p class="muted" style="margin:0">Na página também existe a opção “Outra”, para digitar uma VTR fora da lista.</p>
+      </div>
+      <div class="card stack">
+        <h2 style="margin:0">Identificação (perguntas)</h2>
+        <div class="list" id="eQuestions"></div>
+        <div><button class="btn alt" type="button" id="addQuestion">+ Pergunta</button></div>
+      </div>
+      <div class="card stack">
+        <h2 style="margin:0">Blocos e itens</h2>
+        <div class="stack" id="eBlocks"></div>
+        <div><button class="btn alt" type="button" id="addBlock">+ Bloco</button></div>
+      </div>
+      <div class="savebar">
+        <span class="msg" id="saveMsg">Sem alterações.</span>
+        <div class="row">
+          <button class="btn alt" type="button" id="discardBtn">Descartar</button>
+          <button class="btn" type="button" id="saveBtn">Salvar checklist</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="vendor/supabase.js"></script>
+  <script src="config.js"></script>
+  <script>
+    const cfg = window.ADMIN_CONFIG || {};
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const br = (iso) => iso ? String(iso).slice(0, 10).split("-").reverse().join("/") : "";
+    const tz = "America/Fortaleza";
+    const dateTime = (ts) => new Intl.DateTimeFormat("pt-BR", { timeZone: tz, dateStyle: "short", timeStyle: "short" }).format(new Date(ts));
+    const todayIso = () => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
+    const daysAgoIso = (n) => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date(Date.now() - n * 86400000));
+    const uid = (p) => p + "-" + Math.random().toString(36).slice(2, 8);
+    let sb = null;
+    let VIST = [];      // vistorias recebidas
+    let saved = null;   // checklist salvo no banco
+    let draft = null;   // checklist em edição
+
+    function gate(msg, back = true) {
+      const g = $("gate"); g.hidden = false;
+      g.innerHTML = esc(msg) + (back ? ' <a href="/">Voltar ao portal</a>' : "");
+      for (const t of ["resumo", "vistorias", "checklist"]) $("tab-" + t).hidden = true;
+      $("tabs").hidden = true;
+    }
+    const isMissingTable = (e) => e && (e.code === "42P01" || e.code === "PGRST205" || /does not exist|could not find the table/i.test(e.message || ""));
+
+    // ===================== Abas =====================
+    let current = "resumo";
+    function showTab(t) {
+      current = t;
+      document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+      for (const x of ["resumo", "vistorias", "checklist"]) $("tab-" + x).hidden = x !== t;
+      try { localStorage.setItem("mbAdmin.tab", t); } catch { /* sem armazenamento */ }
+    }
+    $("tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
+
+    // ===================== Dados =====================
+    async function loadVistorias() {
+      let all = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await sb.from("mb_vistorias").select("*").order("created_at", { ascending: false }).range(from, from + 999);
+        if (error) throw error;
+        all = all.concat(data);
+        if (data.length < 1000) break;
+      }
+      VIST = all;
+    }
+    async function loadConfig() {
+      const { data, error } = await sb.from("mb_config").select("content,updated_at").eq("id", "main").maybeSingle();
+      if (error) throw error;
+      saved = normalize(data ? data.content : null);
+      saved._updated = data ? data.updated_at : null;
+      draft = clone(saved);
+    }
+    document.querySelectorAll("[data-reload]").forEach((b) => b.onclick = async () => {
+      b.disabled = true;
+      try { await loadVistorias(); renderResumo(); fillVtrFilter(); renderVistorias(); } catch { alert("Não foi possível atualizar."); }
+      b.disabled = false;
+    });
+
+    const oficialDe = (v) => { const r = v.respostas || {}; return r["Oficial de Dia / Fiscal de Dia"] || Object.values(r)[0] || ""; };
+    const alteracoesDe = (v) => (Array.isArray(v.itens) ? v.itens : []).filter((i) => i.status === "alt");
+
+    // ===================== Resumo =====================
+    function renderResumo() {
+      const d = Number($("periodo").value);
+      const from = d ? daysAgoIso(d - 1) : "";
+      const a = VIST.filter((v) => !from || String(v.data) >= from);
+      const comAlt = a.filter((v) => v.alteracoes > 0).length;
+      const totalAlt = a.reduce((s, v) => s + (v.alteracoes || 0), 0);
+      const ult = a[0];
+      $("kpis").innerHTML = [
+        ["Vistorias", a.length, d ? `nos últimos ${d} dias` : "desde o início"],
+        ["Com alteração", comAlt, a.length ? Math.round(comAlt / a.length * 100) + "% das vistorias" : "—"],
+        ["Alterações registradas", totalAlt, "itens marcados como alteração"],
+        ["Última vistoria", ult ? br(ult.data) : "—", ult ? esc(ult.vtr) : "nenhuma ainda"]
+      ].map((k) => `<div class="card kpi"><div class="muted">${k[0]}</div><div class="n">${k[1]}</div><div class="muted">${k[2]}</div></div>`).join("");
+
+      const porVtr = {};
+      for (const v of a) {
+        const x = porVtr[v.vtr] || (porVtr[v.vtr] = { n: 0, alt: 0, ultima: "" });
+        x.n++; x.alt += v.alteracoes || 0; if (String(v.data) > x.ultima) x.ultima = String(v.data);
+      }
+      const vt = Object.entries(porVtr).sort((x, y) => y[1].n - x[1].n);
+      $("porVtr").innerHTML = vt.length ? `<table><thead><tr><th>VTR</th><th>Vistorias</th><th>Alterações</th><th>Última</th></tr></thead><tbody>${vt.map(([k, x]) =>
+        `<tr><td><strong>${esc(k)}</strong></td><td>${x.n}</td><td>${x.alt ? `<span class="pill alt">${x.alt}</span>` : '<span class="pill ok">0</span>'}</td><td>${br(x.ultima)}</td></tr>`).join("")}</tbody></table>`
+        : '<div class="empty">Nenhuma vistoria no período.</div>';
+
+      const top = {};
+      for (const v of a) for (const i of alteracoesDe(v)) {
+        const k = i.bloco + " · " + i.item;
+        const x = top[k] || (top[k] = { bloco: i.bloco, item: i.item, n: 0, tipos: {} });
+        x.n++; if (i.tipo) x.tipos[i.tipo] = (x.tipos[i.tipo] || 0) + 1;
+      }
+      const tp = Object.values(top).sort((x, y) => y.n - x.n).slice(0, 10);
+      $("topItens").innerHTML = tp.length ? `<table><thead><tr><th>Item</th><th>Vezes</th><th class="hide-sm">Tipo</th></tr></thead><tbody>${tp.map((x) =>
+        `<tr><td>${esc(x.item)}<div class="muted">${esc(x.bloco)}</div></td><td><span class="pill alt">${x.n}</span></td><td class="hide-sm">${esc(Object.entries(x.tipos).map(([t, n]) => `${t} (${n})`).join(", "))}</td></tr>`).join("")}</tbody></table>`
+        : '<div class="empty">Nenhuma alteração no período.</div>';
+    }
+    $("periodo").onchange = renderResumo;
+
+    // ===================== Vistorias =====================
+    function fillVtrFilter() {
+      const s = $("fVtr"), cur = s.value;
+      const vtrs = [...new Set(VIST.map((v) => v.vtr))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+      s.innerHTML = '<option value="">Todas</option>' + vtrs.map((v) => `<option>${esc(v)}</option>`).join("");
+      s.value = vtrs.includes(cur) ? cur : "";
+    }
+    function filteredVist() {
+      const vtr = $("fVtr").value, de = $("fDe").value, ate = $("fAte").value, sit = $("fSit").value, q = $("fBusca").value.toLowerCase().trim();
+      return VIST.filter((v) => {
+        if (vtr && v.vtr !== vtr) return false;
+        if (de && String(v.data) < de) return false;
+        if (ate && String(v.data) > ate) return false;
+        if (sit === "alt" && !(v.alteracoes > 0)) return false;
+        if (sit === "ok" && v.alteracoes > 0) return false;
+        if (q && !JSON.stringify([v.vtr, v.respostas, alteracoesDe(v), v.observacoes]).toLowerCase().includes(q)) return false;
+        return true;
+      });
+    }
+    let openId = null;
+    function detailHtml(v) {
+      const resp = Object.entries(v.respostas || {});
+      const alts = alteracoesDe(v);
+      const obs = Array.isArray(v.observacoes) ? v.observacoes : [];
+      const tel = v.telefone ? v.telefone.replace(/^55/, "") : "";
+      return `<div class="grid2">
+        <div>
+          <h3>Identificação</h3>
+          <ul>${resp.map(([k, a]) => `<li><strong>${esc(k)}:</strong> ${esc(a)}</li>`).join("") || "<li>—</li>"}
+            ${tel ? `<li><strong>Enviado para:</strong> ${esc(tel)}</li>` : ""}
+            <li><strong>Registrado em:</strong> ${dateTime(v.created_at)}</li></ul>
+        </div>
+        <div>
+          <h3>Alterações (${alts.length})</h3>
+          <ul>${alts.map((i) => `<li>⚠️ <strong>${esc(i.item)}</strong> <span class="muted">(${esc(i.bloco)})</span> — ${esc(i.tipo || "Alteração")}${i.detalhe ? ": " + esc(i.detalhe) : ""}</li>`).join("") || "<li>Nenhuma. Tudo conforme.</li>"}</ul>
+          ${obs.length ? `<h3 style="margin-top:12px">Observações</h3><ul>${obs.map((o) => `<li><strong>${esc(o.bloco)}:</strong> ${esc(o.texto)}</li>`).join("")}</ul>` : ""}
+        </div>
+      </div>
+      <div style="margin-top:12px"><button class="btn alt small" type="button" data-del="${esc(v.id)}">Excluir vistoria</button></div>`;
+    }
+    function renderVistorias() {
+      const a = filteredVist();
+      $("vCount").textContent = `${a.length} vistoria(s)` + (a.length !== VIST.length ? ` de ${VIST.length}` : "");
+      if (!a.length) { $("vTable").innerHTML = `<div class="empty">${VIST.length ? "Nenhuma vistoria com esses filtros." : "Nenhuma vistoria recebida ainda. Elas aparecem aqui quando alguém envia pela página do checklist."}</div>`; return; }
+      const shown = a.slice(0, 300);
+      $("vTable").innerHTML = `<table><thead><tr><th>Data</th><th>VTR</th><th class="hide-sm">Oficial / Fiscal de Dia</th><th>Resultado</th><th class="hide-sm">Registrado</th></tr></thead><tbody>${shown.map((v) => `
+        <tr class="v-row" data-open="${esc(v.id)}" aria-expanded="${openId === v.id}"><td>${br(v.data)}</td><td><strong>${esc(v.vtr)}</strong></td><td class="hide-sm">${esc(oficialDe(v))}</td>
+          <td><span class="pill ok">✓ ${v.conformes}</span> ${v.alteracoes ? `<span class="pill alt">⚠ ${v.alteracoes}</span>` : ""} ${v.sem_resposta ? `<span class="pill off">⬜ ${v.sem_resposta}</span>` : ""}</td>
+          <td class="hide-sm muted">${dateTime(v.created_at)}</td></tr>
+        ${openId === v.id ? `<tr class="detail"><td colspan="5">${detailHtml(v)}</td></tr>` : ""}`).join("")}</tbody></table>
+        ${a.length > 300 ? `<div class="empty">Mostrando 300 de ${a.length}. Use os filtros ou exporte o CSV.</div>` : ""}`;
+    }
+    ["fVtr", "fDe", "fAte", "fSit"].forEach((id) => $(id).addEventListener("change", renderVistorias));
+    $("fBusca").addEventListener("input", renderVistorias);
+    $("vTable").addEventListener("click", async (e) => {
+      const del = e.target.closest("[data-del]");
+      if (del) {
+        if (!confirm("Excluir esta vistoria? Não dá para desfazer.")) return;
+        del.disabled = true;
+        const { error } = await sb.from("mb_vistorias").delete().eq("id", del.dataset.del);
+        if (error) { del.disabled = false; alert("Não foi possível excluir."); return; }
+        VIST = VIST.filter((v) => v.id !== del.dataset.del); openId = null;
+        renderVistorias(); renderResumo(); fillVtrFilter();
+        return;
+      }
+      const row = e.target.closest("[data-open]");
+      if (row) { openId = openId === row.dataset.open ? null : row.dataset.open; renderVistorias(); }
+    });
+    $("csvBtn").onclick = () => {
+      const a = filteredVist();
+      const cell = (x) => { const s = String(x ?? ""); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+      const qs = [...new Set(a.flatMap((v) => Object.keys(v.respostas || {})))];
+      const head = ["Data", "VTR", ...qs, "Conformes", "Alterações", "Sem resposta", "Itens com alteração", "Observações", "Registrado em"];
+      const lines = a.map((v) => [br(v.data), v.vtr, ...qs.map((q) => (v.respostas || {})[q] || ""), v.conformes, v.alteracoes, v.sem_resposta,
+        alteracoesDe(v).map((i) => `${i.item} (${i.tipo || "Alteração"}${i.detalhe ? ": " + i.detalhe : ""})`).join(" | "),
+        (v.observacoes || []).map((o) => `${o.bloco}: ${o.texto}`).join(" | "), dateTime(v.created_at)]);
+      const csv = "﻿" + [head, ...lines].map((l) => l.map(cell).join(";")).join("\r\n");
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a"); link.href = url; link.download = `mata-branca-vistorias-${todayIso()}.csv`;
+      document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+    // ===================== Checklist (edição) =====================
+    const clone = (o) => JSON.parse(JSON.stringify(o));
+    function normalize(c) {
+      const str = (v) => String(v ?? "").trim();
+      c = c && typeof c === "object" ? c : {};
+      return {
+        title: str(c.title) || "CHECKLIST - MATA BRANCA",
+        vtrs: (Array.isArray(c.vtrs) ? c.vtrs : []).map(str).filter(Boolean),
+        questions: (Array.isArray(c.questions) ? c.questions : []).map((q) => ({ id: str(q.id) || uid("q"), text: str(q.text), required: q.required === true })),
+        blocks: (Array.isArray(c.blocks) ? c.blocks : []).map((b) => {
+          const id = str(b.id) || uid("b");
+          return { id, title: str(b.title), required: b.required !== false,
+            items: (Array.isArray(b.items) ? b.items : []).map((it, i) => typeof it === "string" ? { id: `${id}-${i}`, name: str(it) } : { id: str(it.id) || uid(id), name: str(it.name) }) };
+        })
+      };
+    }
+    const content = (c) => ({ title: c.title, vtrs: c.vtrs, questions: c.questions, blocks: c.blocks });
+    const dirty = () => JSON.stringify(content(draft)) !== JSON.stringify(content(saved));
+    function setMsg(text, kind = "") { $("saveMsg").textContent = text; $("saveMsg").className = "msg " + kind; }
+    function markDirty() { if (dirty()) setMsg("Alterações não salvas.", "err"); else setMsg("Sem alterações."); }
+
+    const moveBtns = (kind, idx, extra = "") => `
+      <button class="icon-btn" type="button" title="Subir" aria-label="Subir" data-act="up" data-kind="${kind}" data-i="${idx}" ${extra}>↑</button>
+      <button class="icon-btn" type="button" title="Descer" aria-label="Descer" data-act="down" data-kind="${kind}" data-i="${idx}" ${extra}>↓</button>
+      <button class="icon-btn danger" type="button" title="Remover" aria-label="Remover" data-act="del" data-kind="${kind}" data-i="${idx}" ${extra}>✕</button>`;
+
+    function renderEditor() {
+      $("eTitle").value = draft.title;
+      $("eVtrs").innerHTML = draft.vtrs.map((v, i) => `<span class="chip">${esc(v)}<button type="button" aria-label="Remover ${esc(v)}" data-act="del" data-kind="vtr" data-i="${i}">✕</button></span>`).join("")
+        || '<span class="muted">Nenhuma VTR. Adicione pelo menos uma.</span>';
+      $("eQuestions").innerHTML = draft.questions.map((q, i) => `
+        <div class="line">
+          <input type="text" value="${esc(q.text)}" placeholder="Texto da pergunta" maxlength="80" data-field="qtext" data-i="${i}" aria-label="Pergunta ${i + 1}" />
+          <label class="check"><input type="checkbox" ${q.required ? "checked" : ""} data-field="qreq" data-i="${i}" /> Obrigatória</label>
+          ${moveBtns("q", i)}
+        </div>`).join("") || '<span class="muted">Nenhuma pergunta.</span>';
+      $("eBlocks").innerHTML = draft.blocks.map((b, bi) => `
+        <div class="block-card">
+          <div class="block-head">
+            <input type="text" value="${esc(b.title)}" placeholder="Nome do bloco" maxlength="60" data-field="btitle" data-i="${bi}" aria-label="Nome do bloco ${bi + 1}" />
+            <label class="check"><input type="checkbox" ${b.required ? "checked" : ""} data-field="breq" data-i="${bi}" /> Obrigatório</label>
+            ${moveBtns("b", bi)}
+          </div>
+          <div class="list items">
+            ${b.items.map((it, ii) => `
+              <div class="line">
+                <input type="text" value="${esc(it.name)}" placeholder="Nome do item" maxlength="120" data-field="iname" data-b="${bi}" data-i="${ii}" aria-label="Item ${ii + 1} do bloco ${esc(b.title)}" />
+                ${moveBtns("i", ii, `data-b="${bi}"`)}
+              </div>`).join("") || '<span class="muted">Nenhum item.</span>'}
+            <div class="line" style="max-width:520px">
+              <input type="text" placeholder="Novo item" maxlength="120" data-newitem="${bi}" aria-label="Novo item no bloco ${esc(b.title)}" />
+              <button class="btn alt small" type="button" data-additem="${bi}">Adicionar</button>
+            </div>
+          </div>
+          <span class="muted">${b.items.length} ${b.items.length === 1 ? "item" : "itens"}${b.required ? "" : " · bloco opcional (o efetivo pode deixar em branco)"}</span>
+        </div>`).join("") || '<span class="muted">Nenhum bloco.</span>';
+      markDirty();
+    }
+    function move(arr, i, d) { const j = i + d; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; }
+
+    $("tab-checklist").addEventListener("input", (e) => {
+      const t = e.target, i = Number(t.dataset.i);
+      if (t.id === "eTitle") draft.title = t.value;
+      else if (t.dataset.field === "qtext") draft.questions[i].text = t.value;
+      else if (t.dataset.field === "btitle") draft.blocks[i].title = t.value;
+      else if (t.dataset.field === "iname") draft.blocks[Number(t.dataset.b)].items[i].name = t.value;
+      else return;
+      markDirty();
+    });
+    $("tab-checklist").addEventListener("change", (e) => {
+      const t = e.target, i = Number(t.dataset.i);
+      if (t.dataset.field === "qreq") draft.questions[i].required = t.checked;
+      else if (t.dataset.field === "breq") { draft.blocks[i].required = t.checked; renderEditor(); return; }
+      else return;
+      markDirty();
+    });
+    $("tab-checklist").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      if (e.target.id === "newVtr") { e.preventDefault(); $("addVtr").click(); }
+      if (e.target.dataset.newitem !== undefined) { e.preventDefault(); document.querySelector(`[data-additem="${e.target.dataset.newitem}"]`).click(); }
+    });
+    $("tab-checklist").addEventListener("click", (e) => {
+      const add = e.target.closest("[data-additem]");
+      if (add) {
+        const bi = Number(add.dataset.additem), inp = document.querySelector(`[data-newitem="${bi}"]`), name = inp.value.trim();
+        if (!name) { inp.focus(); return; }
+        draft.blocks[bi].items.push({ id: uid(draft.blocks[bi].id), name });
+        renderEditor(); document.querySelector(`[data-newitem="${bi}"]`).focus();
+        return;
+      }
+      const b = e.target.closest("[data-act]"); if (!b) return;
+      const i = Number(b.dataset.i), kind = b.dataset.kind, act = b.dataset.act;
+      const arr = kind === "vtr" ? draft.vtrs : kind === "q" ? draft.questions : kind === "b" ? draft.blocks : draft.blocks[Number(b.dataset.b)].items;
+      if (act === "up") move(arr, i, -1);
+      else if (act === "down") move(arr, i, 1);
+      else if (act === "del") {
+        if (kind === "b" && arr[i].items.length && !confirm(`Remover o bloco "${arr[i].title || "sem nome"}" e os ${arr[i].items.length} itens dele?`)) return;
+        arr.splice(i, 1);
+      }
+      renderEditor();
+    });
+    $("addVtr").onclick = () => {
+      const v = $("newVtr").value.trim().toUpperCase();
+      if (!v) { $("newVtr").focus(); return; }
+      if (!draft.vtrs.some((x) => x.toUpperCase() === v)) draft.vtrs.push(v);
+      $("newVtr").value = ""; renderEditor(); $("newVtr").focus();
+    };
+    $("addQuestion").onclick = () => { draft.questions.push({ id: uid("q"), text: "", required: false }); renderEditor(); const l = document.querySelectorAll('[data-field="qtext"]'); l[l.length - 1].focus(); };
+    $("addBlock").onclick = () => { draft.blocks.push({ id: uid("b"), title: "", required: true, items: [] }); renderEditor(); const l = document.querySelectorAll('[data-field="btitle"]'); l[l.length - 1].focus(); };
+    $("discardBtn").onclick = () => { if (!dirty() || confirm("Descartar as alterações não salvas?")) { draft = clone(saved); renderEditor(); } };
+
+    function validate(c) {
+      const p = [];
+      if (!c.title.trim()) p.push("Informe o título.");
+      if (!c.vtrs.length) p.push("Adicione pelo menos uma VTR.");
+      c.questions.forEach((q, i) => { if (!q.text.trim()) p.push(`Pergunta ${i + 1} está sem texto.`); });
+      if (!c.blocks.length) p.push("Crie pelo menos um bloco.");
+      c.blocks.forEach((b, i) => {
+        if (!b.title.trim()) p.push(`Bloco ${i + 1} está sem nome.`);
+        if (!b.items.length) p.push(`O bloco "${b.title || i + 1}" não tem itens.`);
+        b.items.forEach((it, j) => { if (!it.name.trim()) p.push(`Bloco "${b.title || i + 1}": item ${j + 1} está sem nome.`); });
+      });
+      return p;
+    }
+    $("saveBtn").onclick = async () => {
+      const c = content(normalize(clone(draft)));
+      const prob = validate(c);
+      if (prob.length) { setMsg(prob[0] + (prob.length > 1 ? ` (e mais ${prob.length - 1})` : ""), "err"); return; }
+      if (!dirty()) { setMsg("Sem alterações."); return; }
+      $("saveBtn").disabled = true; setMsg("Salvando…");
+      const { error } = await sb.from("mb_config").upsert({ id: "main", content: c, updated_at: new Date().toISOString() });
+      $("saveBtn").disabled = false;
+      if (error) { setMsg("Não salvou. Tente de novo.", "err"); return; }
+      saved = clone(c); draft = clone(c); renderEditor();
+      setMsg("Checklist salvo. A página do checklist já usa esta versão.", "ok");
+    };
+    let leaving = false;
+    window.addEventListener("beforeunload", (e) => { if (!leaving && draft && saved && dirty()) { e.preventDefault(); e.returnValue = ""; } });
+
+    // ===================== Entrada (login do portal) =====================
+    (async () => {
+      if (!cfg.supabaseUrl || !window.supabase) return gate("Configuração ausente (config.js).");
+      sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, { auth: { persistSession: true, autoRefreshToken: true } });
+      const withTimeout = (p, ms = 15000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+      try {
+        const { data } = await withTimeout(sb.auth.getSession());
+        if (!data.session) return location.replace("/?redirect=" + encodeURIComponent("/mata-branca-admin"));
+        const adm = await withTimeout(sb.rpc("is_admin"));
+        if (adm.error || adm.data !== true) return location.replace("/?denied=1");
+        $("userEmail").textContent = data.session.user.email || "";
+        $("userBox").hidden = false;
+        await withTimeout(Promise.all([loadVistorias(), loadConfig()]), 30000);
+      } catch (e) {
+        return gate(isMissingTable(e)
+          ? "As tabelas do Mata Branca ainda não foram criadas no Supabase (rodar supabase/mata_branca.sql — ver README)."
+          : "Não foi possível carregar. Verifique a internet e recarregue a página.");
+      }
+      $("gate").hidden = true; $("tabs").hidden = false;
+      renderResumo(); fillVtrFilter(); renderVistorias(); renderEditor();
+      let t = "resumo"; try { t = localStorage.getItem("mbAdmin.tab") || "resumo"; } catch { /* padrão */ }
+      showTab(["resumo", "vistorias", "checklist"].includes(t) ? t : "resumo");
+    })();
+
+    $("logoutBtn").addEventListener("click", async () => {
+      if (draft && saved && dirty() && !confirm("Há alterações no checklist não salvas. Sair mesmo assim?")) return;
+      leaving = true;
+      if (sb) await sb.auth.signOut({ scope: "local" });
+      location.replace("/");
+    });
+  </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 // Para adicionar uma página: novo bloco aqui + "userPage" no cartão do portal (index.html).
 window.USER_PAGES = [
   {
-    id: "checklist", name: "Checklist de Vistoria", icon: "✅",
+    id: "checklist", name: "Checklist ABTS14", icon: "✅",
     description: "Preencher a vistoria e enviar o resultado pelo WhatsApp.",
     url: "https://vistoria-whatsapp.vercel.app/"
   },

@@ -109,6 +109,7 @@
   <section class="card stack result" id="resultView" hidden>
     <h2>✅ Relatório pronto</h2>
     <p class="hint" id="usedPhone"></p>
+    <p class="hint" id="saveStatus" role="status"></p>
     <div class="label"><span>O que enviar</span>
       <label class="radio"><input type="radio" name="scope" value="changes" checked /> Só as alterações (mais curto)</label>
       <label class="radio"><input type="radio" name="scope" value="all" /> Todos os itens</label>
@@ -132,10 +133,11 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script>
   // ===== Conteúdo do checklist (baseado no formulário "Checklist VTR Florestal" do Google) =====
   // Para mudar itens: editar aqui. "required: false" = bloco opcional.
-  const CHECKLIST = {
+  let CHECKLIST = {
     title: "CHECKLIST - MATA BRANCA",
     vtrs: ["ABT 33", "ABTS 04", "AHQ 01"],
     questions: [
@@ -169,7 +171,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const todayIso = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Fortaleza" }).format(new Date());
   const br = (iso) => iso ? iso.split("-").reverse().join("/") : "";
-  const itemId = (b, i) => `${b.id}-${i}`;
+  const itemId = (b, i) => (b.itemIds && b.itemIds[i]) || `${b.id}-${i}`;
 
   const blank = () => ({ phone: "", date: todayIso(), vtr: "", vtrOther: "", answers: {}, items: {}, notes: {} });
   let state = blank();
@@ -360,6 +362,7 @@
     $("missingBox").hidden = true;
     $("formView").hidden = true; $("bar").hidden = true; $("resultView").hidden = false;
     renderResult(); window.scrollTo({ top: 0 });
+    recordVistoria();
   };
   $("editBtn").onclick = () => { $("resultView").hidden = true; $("formView").hidden = false; $("bar").hidden = false; };
   $("copyBtn").onclick = async () => {
@@ -373,7 +376,85 @@
     renderInfo(); renderBlocks(); $("resultView").hidden = true; $("formView").hidden = false; $("bar").hidden = false; window.scrollTo({ top: 0 });
   };
 
-  renderInfo(); renderBlocks();
+  // ===== Checklist editado no painel admin (tabela mb_config) e registro das vistorias (mb_vistorias) =====
+  // Sem banco (tabela ainda não criada ou sem internet), vale a lista CHECKLIST acima e o WhatsApp funciona igual.
+  const CFG = window.ADMIN_CONFIG || {};
+  function normalizeChecklist(c) {
+    if (!c || !Array.isArray(c.blocks) || !c.blocks.length) return null;
+    const str = (v) => String(v ?? "").trim();
+    const blocks = c.blocks.map((b, bi) => {
+      const items = (Array.isArray(b.items) ? b.items : []).map((it, i) => typeof it === "string" ? { id: `${str(b.id) || "b" + bi}-${i}`, name: str(it) } : { id: str(it.id), name: str(it.name) })
+        .filter((it) => it.id && it.name);
+      return { id: str(b.id) || "b" + bi, title: str(b.title) || "Bloco", required: b.required !== false, items: items.map((it) => it.name), itemIds: items.map((it) => it.id) };
+    }).filter((b) => b.items.length);
+    if (!blocks.length) return null;
+    return {
+      title: str(c.title) || "CHECKLIST - MATA BRANCA",
+      vtrs: (Array.isArray(c.vtrs) ? c.vtrs : []).map(str).filter(Boolean),
+      questions: (Array.isArray(c.questions) ? c.questions : []).map((q) => ({ id: str(q.id), text: str(q.text), required: q.required === true })).filter((q) => q.id && q.text),
+      blocks
+    };
+  }
+  async function loadChecklist() {
+    if (!CFG.supabaseUrl) return;
+    try {
+      const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 6000);
+      const r = await fetch(CFG.supabaseUrl + "/rest/v1/mb_config?select=content&id=eq.main", { headers: { apikey: CFG.supabasePublishableKey }, cache: "no-store", signal: ctl.signal });
+      clearTimeout(t);
+      if (!r.ok) return;
+      const rows = await r.json();
+      const c = normalizeChecklist(rows && rows[0] && rows[0].content);
+      if (c) CHECKLIST = c;
+    } catch { /* usa a lista fixa */ }
+  }
+  function vistoriaPayload() {
+    let ok = 0, alt = 0, none = 0;
+    const itens = [], observacoes = [];
+    for (const b of CHECKLIST.blocks) {
+      b.items.forEach((name, i) => {
+        const r = state.items[itemId(b, i)] || {};
+        if (r.status === "ok") ok++; else if (r.status === "alt") alt++; else none++;
+        itens.push({ bloco: b.title, item: name, status: r.status || null, tipo: r.status === "alt" ? r.altType || null : null, detalhe: r.status === "alt" ? (r.detail || "").trim().slice(0, 1000) : "" });
+      });
+      const note = (state.notes[b.id] || "").trim();
+      if (note) observacoes.push({ bloco: b.title, texto: note.slice(0, 2000) });
+    }
+    const respostas = {};
+    for (const q of CHECKLIST.questions) { const a = (state.answers[q.id] || "").trim(); if (a) respostas[q.text] = a.slice(0, 200); }
+    return {
+      data: state.date || todayIso(),
+      vtr: (state.vtr === "Outra" ? state.vtrOther.trim() : state.vtr).slice(0, 60),
+      telefone: normalizePhone(state.phone).digits || "",
+      respostas, itens, observacoes, conformes: ok, alteracoes: alt, sem_resposta: none
+    };
+  }
+  // Grava uma vez por envio; reenviar a mesma vistoria (voltar sem mudar nada) não duplica.
+  let lastRecorded = null;
+  async function recordVistoria() {
+    const body = vistoriaPayload(), key = JSON.stringify(body);
+    const st = $("saveStatus");
+    if (key === lastRecorded) return;
+    if (!CFG.supabaseUrl) { st.textContent = ""; return; }
+    st.textContent = "Registrando a vistoria…";
+    try {
+      const r = await fetch(CFG.supabaseUrl + "/rest/v1/mb_vistorias", {
+        method: "POST",
+        headers: { apikey: CFG.supabasePublishableKey, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: key
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      lastRecorded = key;
+      st.textContent = "Vistoria registrada no sistema.";
+    } catch {
+      st.textContent = "Não foi possível registrar no sistema. O envio pelo WhatsApp funciona normalmente.";
+    }
+  }
+
+  (async () => {
+    $("blocks").innerHTML = '<p class="hint">Carregando checklist…</p>';
+    await loadChecklist();
+    renderInfo(); renderBlocks();
+  })();
 </script>
 </body>
 </html>

@@ -71,10 +71,16 @@ Sem sessão → volta ao login do portal e, depois de entrar, abre o SisVTR.
 - **Sem valores (R$):** a página não busca nem mostra a coluna `valor` (nem cartões, nem tabela, nem edição). O valor continua guardado no banco.
 - Mantido pelo chat SISVTR. O projeto antigo `NobreDev11/SisVTR` (login próprio, nunca publicado) não é usado aqui.
 
-## Checklist - Mata Branca (`/mata-branca`)
-Página pública (sem login), no padrão do Checklist VTR ABTS14: número do oficial, identificação (data, VTR,
-Oficial/Fiscal de Dia, COV, operadores, conferentes), blocos Mangueiras (opcional), Porta traseira e Cabine
-com Conforme/Alteração (Falta, Danificado, Outros) e observações; gera o relatório e abre o WhatsApp.
-Base: formulário Google "Checklist VTR Florestal" (7ª CIA/1º BBM). Rascunho fica no navegador.
-**Não grava as vistorias em banco** (diferente do ABTS14). Itens: lista `CHECKLIST` em `mata-branca.html`.
-Aparece na página dos usuários (id `mata-branca`, botão de visibilidade no cartão do portal).
+## Checklist - Mata Branca (`/mata-branca` e `/mata-branca-admin`)
+Mesmo padrão do Checklist ABTS14: página pública para o efetivo + painel administrativo com o login do portal.
+- **Página pública** `/mata-branca` (`mata-branca.html`, sem login): número do oficial, identificação, blocos com
+  Conforme/Alteração e observações; gera o relatório e abre o WhatsApp. Lê o checklist da tabela `mb_config`
+  e **grava cada envio** em `mb_vistorias`. Sem as tabelas (ou sem internet) usa a lista fixa `CHECKLIST` do arquivo
+  e o WhatsApp funciona igual. Rascunho fica no navegador.
+- **Admin** `/mata-branca-admin` (`mata-branca-admin.html`, sessão do portal + `is_admin()`): abas **Resumo**
+  (por período: vistorias, alterações, por VTR, itens com mais alterações), **Vistorias** (filtros, detalhe,
+  excluir, CSV) e **Checklist** (título, VTRs, perguntas, blocos e itens; salvar vale na hora para a página pública).
+- **Uma vez:** Supabase do Checklist → SQL Editor → colar `supabase/mata_branca.sql` → Run. Cria `mb_config`
+  (leitura pública, alteração só admin; já vem com os itens atuais) e `mb_vistorias` (envio público; ler/excluir só admin).
+- Itens têm `id` fixo: renomear ou reordenar não bagunça rascunhos. Vistorias guardam o nome do item na hora do envio.
+- Aparece na página dos usuários (id `mata-branca`, botão de visibilidade no cartão do portal).
