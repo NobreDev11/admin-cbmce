@@ -9,6 +9,11 @@ window.USER_PAGES = [
     url: "https://vistoria-whatsapp.vercel.app/"
   },
   {
+    id: "mata-branca", name: "Checklist - Mata Branca", icon: "🌳",
+    description: "Conferência da VTR DIRSO Florestal e envio pelo WhatsApp.",
+    url: "/mata-branca"
+  },
+  {
     id: "escala", name: "Escala de Serviço", icon: "📋",
     description: "Consultar a escala por militar, função e data.",
     url: "https://escala-cbmce.vercel.app/",

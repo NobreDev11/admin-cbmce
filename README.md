@@ -70,3 +70,11 @@ Sem sessão → volta ao login do portal e, depois de entrar, abre o SisVTR.
 - **Só a 7ª CIA:** a página busca apenas `obm = '7ª CIA/1º BBM - CISP'` (constante `OBM_FIXA` em `sisvtr.html`). Para outra OBM, trocar a constante.
 - **Sem valores (R$):** a página não busca nem mostra a coluna `valor` (nem cartões, nem tabela, nem edição). O valor continua guardado no banco.
 - Mantido pelo chat SISVTR. O projeto antigo `NobreDev11/SisVTR` (login próprio, nunca publicado) não é usado aqui.
+
+## Checklist - Mata Branca (`/mata-branca`)
+Página pública (sem login), no padrão do Checklist VTR ABTS14: número do oficial, identificação (data, VTR,
+Oficial/Fiscal de Dia, COV, operadores, conferentes), blocos Mangueiras (opcional), Porta traseira e Cabine
+com Conforme/Alteração (Falta, Danificado, Outros) e observações; gera o relatório e abre o WhatsApp.
+Base: formulário Google "Checklist VTR Florestal" (7ª CIA/1º BBM). Rascunho fica no navegador.
+**Não grava as vistorias em banco** (diferente do ABTS14). Itens: lista `CHECKLIST` em `mata-branca.html`.
+Aparece na página dos usuários (id `mata-branca`, botão de visibilidade no cartão do portal).

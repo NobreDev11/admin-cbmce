@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Checklist Mata Branca</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>" />
+  <style>
+    /* Mesmo visual do Checklist VTR ABTS14 (vistoria-whatsapp). */
+    :root {
+      --bg: oklch(0.985 0.006 160); --fg: oklch(0.22 0.03 170); --card: #fff;
+      --muted: oklch(0.955 0.015 160); --muted-fg: oklch(0.52 0.03 165); --border: oklch(0.91 0.015 160);
+      --wa: oklch(0.65 0.19 155); --wa-deep: oklch(0.55 0.17 158); --wa-soft: oklch(0.94 0.06 152);
+      --alt: oklch(0.7 0.16 70); --alt-soft: oklch(0.96 0.05 85); --err: oklch(0.577 0.245 27.3); --err-soft: oklch(0.96 0.03 25);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: oklch(0.18 0.015 165); --fg: oklch(0.95 0.01 160); --card: oklch(0.22 0.018 165);
+        --muted: oklch(0.26 0.02 165); --muted-fg: oklch(0.72 0.02 165); --border: oklch(0.32 0.02 165);
+        --wa-soft: oklch(0.3 0.06 155); --alt-soft: oklch(0.3 0.05 80); --err-soft: oklch(0.3 0.06 25);
+      }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--fg); }
+    main { max-width: 720px; margin: 0 auto; padding: 24px 16px 110px; display: flex; flex-direction: column; gap: 16px; }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    h1 { margin: 0; font-size: 24px; }
+    .sub { margin: 4px 0 0; color: var(--muted-fg); font-size: 14px; }
+    .back { flex-shrink: 0; text-decoration: none; color: var(--fg); border: 1px solid var(--border); background: var(--card);
+      padding: 7px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .stack { display: flex; flex-direction: column; gap: 14px; }
+    label, .label { display: flex; flex-direction: column; gap: 6px; font-size: 15px; font-weight: 600; }
+    .small-label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted-fg); }
+    .req { color: var(--err); }
+    input, textarea, select { font: inherit; font-weight: 400; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--card); color: var(--fg); width: 100%; }
+    textarea { min-height: 70px; resize: vertical; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--wa); outline-offset: 2px; }
+    .hint { margin: 0; font-size: 13px; color: var(--muted-fg); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--card); color: var(--fg); cursor: pointer; }
+    .chip[aria-pressed="true"] { background: var(--wa); border-color: var(--wa); color: #fff; }
+    details.block { padding: 0; }
+    details.block > summary { list-style: none; cursor: pointer; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 16px; }
+    details.block > summary::-webkit-details-marker { display: none; }
+    .count { font-size: 12px; font-weight: 600; color: var(--muted-fg); white-space: nowrap; }
+    .count.done { color: var(--wa-deep); }
+    .block-body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .item { border: 1px solid var(--border); background: var(--muted); border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .item.ok { background: var(--wa-soft); border-color: var(--wa); }
+    .item.alt { background: var(--alt-soft); border-color: var(--alt); }
+    .item.missing { border-color: var(--err); box-shadow: 0 0 0 1px var(--err); }
+    .item-name { font-size: 14px; font-weight: 600; }
+    .choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .choice button { font: inherit; font-size: 14px; font-weight: 600; padding: 9px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--card); color: var(--fg); cursor: pointer; }
+    .choice button[data-on="ok"] { background: var(--wa); border-color: var(--wa); color: #fff; }
+    .choice button[data-on="alt"] { background: var(--alt); border-color: var(--alt); color: #1d1a10; }
+    .alt-box { display: flex; flex-direction: column; gap: 8px; }
+    .alt-box .chips .chip { padding: 6px 12px; font-size: 13px; }
+    .alt-box .chip[aria-pressed="true"] { background: var(--alt); border-color: var(--alt); color: #1d1a10; }
+    .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--border); }
+    .bar-in { max-width: 720px; margin: 0 auto; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .bar-count { font-size: 13px; color: var(--muted-fg); }
+    .btn { font: inherit; font-weight: 700; font-size: 15px; border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer;
+      background: var(--wa); color: #fff; text-decoration: none; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn:hover { background: var(--wa-deep); }
+    .btn.outline { background: var(--card); color: var(--fg); border: 1px solid var(--border); }
+    .btn.outline:hover { background: var(--muted); }
+    .error { margin: 0; color: var(--err); font-size: 13px; }
+    .errbox { background: var(--err-soft); border: 1px solid var(--err); border-radius: 16px; padding: 12px 14px; font-size: 14px; }
+    .errbox ul { margin: 6px 0 0; padding-left: 18px; }
+    .result h2 { margin: 0; font-size: 18px; }
+    .result .grid { display: grid; gap: 8px; }
+    .radio { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; font-size: 14px; }
+    .radio input { width: auto; }
+    pre { white-space: pre-wrap; background: var(--muted); border-radius: 12px; padding: 12px; font-size: 13px; margin: 0; max-height: 320px; overflow: auto; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="head">
+    <div>
+      <h1>Checklist - Mata Branca</h1>
+      <p class="sub">VTR DIRSO Florestal · 7ª CIA/1º BBM - CISP. Preencha por blocos e envie o relatório pelo WhatsApp.</p>
+    </div>
+    <a class="back" href="/usuarios">← Voltar</a>
+  </div>
+
+  <div id="formView" class="stack">
+    <section class="card stack">
+      <label><span class="small-label">Digite o número do oficial com DDD</span>
+        <input id="phone" type="tel" inputmode="tel" placeholder="Ex: 88 99999-9999" autocomplete="tel" />
+      </label>
+      <p class="error" id="phoneErr" hidden></p>
+      <p class="hint">Campos com <span class="req">*</span> são obrigatórios.</p>
+    </section>
+
+    <section class="card stack" id="infoCard"></section>
+    <div id="blocks" class="stack"></div>
+    <div class="errbox" id="missingBox" role="alert" hidden></div>
+  </div>
+
+  <section class="card stack result" id="resultView" hidden>
+    <h2>✅ Relatório pronto</h2>
+    <p class="hint" id="usedPhone"></p>
+    <div class="label"><span>O que enviar</span>
+      <label class="radio"><input type="radio" name="scope" value="changes" checked /> Só as alterações (mais curto)</label>
+      <label class="radio"><input type="radio" name="scope" value="all" /> Todos os itens</label>
+    </div>
+    <p class="errbox" id="longWarn" hidden>A mensagem é longa e pode não caber no link do WhatsApp. Copie o texto, abra a conversa e cole.</p>
+    <div class="grid">
+      <a class="btn" id="waBtn" target="_blank" rel="noopener noreferrer">➤ Abrir WhatsApp com a mensagem</a>
+      <a class="btn outline" id="wa8Btn" target="_blank" rel="noopener noreferrer" hidden>Tentar sem o 9</a>
+      <button class="btn outline" id="copyBtn" type="button">Copiar texto</button>
+      <button class="btn outline" id="editBtn" type="button">Voltar e corrigir</button>
+      <button class="btn outline" id="newBtn" type="button">Nova vistoria</button>
+    </div>
+    <details><summary class="hint">Ver mensagem</summary><pre id="preview"></pre></details>
+  </section>
+</main>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <span class="bar-count" id="progress">0/0 itens</span>
+    <button class="btn" id="sendBtn" type="button">➤ Enviar vistoria</button>
+  </div>
+</div>
+
+<script>
+  // ===== Conteúdo do checklist (baseado no formulário "Checklist VTR Florestal" do Google) =====
+  // Para mudar itens: editar aqui. "required: false" = bloco opcional.
+  const CHECKLIST = {
+    title: "CHECKLIST - MATA BRANCA",
+    vtrs: ["ABT 33", "ABTS 04", "AHQ 01"],
+    questions: [
+      { id: "oficial", text: "Oficial de Dia / Fiscal de Dia", required: true },
+      { id: "cov", text: "COV", required: true },
+      { id: "op1", text: "Operador de Linha 1", required: true },
+      { id: "op2", text: "Operador de Linha 2", required: false },
+      { id: "outros", text: "Outros Conferentes", required: false }
+    ],
+    blocks: [
+      { id: "mangueiras", title: "Mangueiras", required: false, items: [
+        "4 MANGUEIRAS DE 2,5\"", "3 MANGUEIRAS DE 1,5\""
+      ] },
+      { id: "traseira", title: "Porta traseira", required: true, items: [
+        "02 EPRA COMPLETO (LOI)", "2 CHAVES DE MANGUEIRAS", "1 ESGUICHO LEADER (LOI)", "2 ESGUICHOS DE LATÃO DE 1,5\"",
+        "1 DIVISOR", "1 ADAPTADOR DE HIDRANTE (AT)", "1 REDUÇÃO (AT)", "1 LUVA DE HIDRANTE", "1 CHAVE T", "5 CONES",
+        "2 PÁS", "2 ENXADAS", "1 CORTA FRIO", "1 FOICE", "1 HALLIGAN", "1 GADANHO", "2 FACÕES", "1 ALAVANCA",
+        "2 BOMBAS COSTAIS", "2 ABAFADORES", "1 ESCADA", "1 CHAVE DE FENDA", "1 CHAVE ESTRELA", "1 LANTERNA AMARELA"
+      ] },
+      { id: "cabine", title: "Cabine", required: true, items: [
+        "1 HT (SESSÃO)", "02 MÁSCARAS - SCOTT EN", "01 LANTERNA (AHQ01/ABTS04)", "01 CHAVE DE FENDA", "01 CHAVE ESTRELA (AHQ01/ABTS04)"
+      ] }
+    ]
+  };
+  const ALT_TYPES = ["Falta", "Danificado", "Outros"];
+  const DRAFT_KEY = "mataBranca.rascunho";
+  const WA_URL_SAFE_LENGTH = 4000;
+
+  // ===== Estado =====
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const todayIso = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Fortaleza" }).format(new Date());
+  const br = (iso) => iso ? iso.split("-").reverse().join("/") : "";
+  const itemId = (b, i) => `${b.id}-${i}`;
+
+  const blank = () => ({ phone: "", date: todayIso(), vtr: "", vtrOther: "", answers: {}, items: {}, notes: {} });
+  let state = blank();
+  try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); if (d && typeof d === "object") state = { ...blank(), ...d, date: d.date || todayIso() }; } catch { /* sem rascunho */ }
+  const save = () => {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); } catch { /* sem armazenamento */ }
+    if (showMissing) renderMissing();
+  };
+  let showMissing = false;
+
+  // ===== Telefone (mesmas regras do ABTS14) =====
+  const DDD = new Set([11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,51,53,54,55,
+    61,62,63,64,65,66,67,68,69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99]);
+  function normalizePhone(raw) {
+    const t = String(raw || "").trim();
+    if (!t) return { error: "Informe o número de WhatsApp." };
+    let d = t.replace(/\D/g, "");
+    if (t.startsWith("+")) {
+      if (d.startsWith("55")) d = d.slice(2); else return d.length >= 8 && d.length <= 15 ? { digits: d } : { error: "Número internacional inválido." };
+    } else if (d.length > 11 && d.startsWith("55")) d = d.slice(2);
+    if (d.startsWith("0")) d = d.replace(/^0+/, "");
+    if (d.length < 10) return { error: "O número está incompleto. Inclua o DDD." };
+    if (d.length > 11) return { error: "O número tem dígitos demais." };
+    if (!DDD.has(Number(d.slice(0, 2)))) return { error: "DDD inválido." };
+    if (d.length === 11 && d[2] !== "9") return { error: "Celular com 9 dígitos deve começar com 9 depois do DDD." };
+    return { digits: "55" + d };
+  }
+
+  // ===== Tela =====
+  function renderInfo() {
+    const vtrChips = [...CHECKLIST.vtrs, "Outra"].map((v) =>
+      `<button type="button" class="chip" data-vtr="${esc(v)}" aria-pressed="${state.vtr === v}">${esc(v)}</button>`).join("");
+    $("infoCard").innerHTML = `
+      <label>Data <input id="date" type="date" value="${esc(state.date)}" /></label>
+      <div class="label"><span>VTR <span class="req">*</span></span>
+        <div class="chips" role="group" aria-label="VTR">${vtrChips}</div>
+        <input id="vtrOther" placeholder="Qual VTR?" value="${esc(state.vtrOther)}" ${state.vtr === "Outra" ? "" : "hidden"} />
+      </div>
+      ${CHECKLIST.questions.map((q) => `
+        <label><span>${esc(q.text)}${q.required ? ' <span class="req">*</span>' : ""}</span>
+          <input data-q="${q.id}" placeholder="Digite a resposta..." value="${esc(state.answers[q.id] || "")}" />
+        </label>`).join("")}`;
+    $("date").onchange = (e) => { state.date = e.target.value; save(); };
+    $("vtrOther").oninput = (e) => { state.vtrOther = e.target.value; save(); };
+    document.querySelectorAll("[data-vtr]").forEach((b) => b.onclick = () => {
+      state.vtr = b.dataset.vtr; save(); renderInfo(); if (state.vtr === "Outra") $("vtrOther").focus();
+    });
+    document.querySelectorAll("[data-q]").forEach((i) => i.oninput = () => { state.answers[i.dataset.q] = i.value; save(); });
+  }
+
+  function itemHtml(b, name, i) {
+    const id = itemId(b, i), r = state.items[id] || {};
+    const miss = showMissing && b.required && !r.status;
+    const altMiss = showMissing && r.status === "alt" && (!r.altType || (r.altType === "Outros" && !(r.detail || "").trim()));
+    return `
+      <div class="item ${r.status || ""} ${miss || altMiss ? "missing" : ""}" data-item="${id}">
+        <div class="item-name">${esc(name)}${b.required ? ' <span class="req">*</span>' : ""}</div>
+        <div class="choice">
+          <button type="button" data-set="ok" ${r.status === "ok" ? 'data-on="ok"' : ""}>✓ Conforme</button>
+          <button type="button" data-set="alt" ${r.status === "alt" ? 'data-on="alt"' : ""}>⚠ Alteração</button>
+        </div>
+        ${r.status === "alt" ? `
+          <div class="alt-box">
+            <div class="chips">${ALT_TYPES.map((t) => `<button type="button" class="chip" data-alttype="${t}" aria-pressed="${r.altType === t}">${t}</button>`).join("")}</div>
+            <textarea data-detail placeholder="${r.altType === "Outros" ? "Descreva a alteração (obrigatório)" : "Detalhe (opcional)"}">${esc(r.detail || "")}</textarea>
+          </div>` : ""}
+      </div>`;
+  }
+
+  function blockCount(b) {
+    return b.items.filter((_, i) => state.items[itemId(b, i)]?.status).length;
+  }
+
+  function renderBlocks() {
+    const open = new Set([...document.querySelectorAll("details.block[open]")].map((d) => d.dataset.block));
+    $("blocks").innerHTML = CHECKLIST.blocks.map((b) => {
+      const n = blockCount(b);
+      return `
+        <details class="card block" data-block="${b.id}" ${open.has(b.id) ? "open" : ""}>
+          <summary>${esc(b.title.toLocaleUpperCase("pt-BR"))}${b.required ? "" : ' <span class="count">(opcional)</span>'}
+            <span class="count ${n === b.items.length ? "done" : ""}">${n}/${b.items.length} ⌄</span></summary>
+          <div class="block-body">
+            ${b.items.map((name, i) => itemHtml(b, name, i)).join("")}
+            <label><span>Observações</span><textarea data-note="${b.id}" placeholder="Alterações do bloco (opcional)">${esc(state.notes[b.id] || "")}</textarea></label>
+          </div>
+        </details>`;
+    }).join("");
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const total = CHECKLIST.blocks.reduce((s, b) => s + b.items.length, 0);
+    const done = CHECKLIST.blocks.reduce((s, b) => s + blockCount(b), 0);
+    $("progress").textContent = `${done}/${total} itens`;
+  }
+
+  $("blocks").addEventListener("click", (e) => {
+    const card = e.target.closest("[data-item]"); if (!card) return;
+    const id = card.dataset.item, r = state.items[id] || (state.items[id] = {});
+    const set = e.target.closest("[data-set]"), type = e.target.closest("[data-alttype]");
+    if (set) { r.status = r.status === set.dataset.set ? undefined : set.dataset.set; if (r.status !== "alt") { delete r.altType; delete r.detail; } }
+    else if (type) r.altType = type.dataset.alttype;
+    else return;
+    if (!r.status) delete state.items[id];
+    save(); renderBlocks();
+  });
+  $("blocks").addEventListener("input", (e) => {
+    if (e.target.matches("[data-note]")) { state.notes[e.target.dataset.note] = e.target.value; save(); return; }
+    if (e.target.matches("[data-detail]")) { const id = e.target.closest("[data-item]").dataset.item; state.items[id].detail = e.target.value; save(); }
+  });
+  $("phone").value = state.phone;
+  $("phone").oninput = (e) => { state.phone = e.target.value; save(); };
+
+  // ===== Validação (mesmas regras do ABTS14) =====
+  function missing() {
+    const m = [];
+    const p = normalizePhone(state.phone); if (p.error) m.push("Número do oficial: " + p.error);
+    if (!state.vtr || (state.vtr === "Outra" && !state.vtrOther.trim())) m.push("VTR");
+    for (const q of CHECKLIST.questions) if (q.required && !(state.answers[q.id] || "").trim()) m.push(q.text);
+    for (const b of CHECKLIST.blocks) b.items.forEach((name, i) => {
+      const r = state.items[itemId(b, i)];
+      if (!r) { if (b.required) m.push(`${b.title}: ${name}`); return; }
+      if (r.status === "alt" && !r.altType) m.push(`${b.title}: ${name} (tipo da alteração)`);
+      else if (r.status === "alt" && r.altType === "Outros" && !(r.detail || "").trim()) m.push(`${b.title}: ${name} (descrever)`);
+    });
+    return m;
+  }
+
+  // Lista do que falta: depois da 1ª tentativa de envio, atualiza a cada mudança.
+  function renderMissing() {
+    const m = missing();
+    $("missingBox").hidden = !m.length;
+    $("missingBox").innerHTML = m.length ? `<strong>Falta preencher ${m.length} ${m.length === 1 ? "item" : "itens"}:</strong><ul>${m.slice(0, 12).map((x) => `<li>${esc(x)}</li>`).join("")}${m.length > 12 ? `<li>e mais ${m.length - 12}…</li>` : ""}</ul>` : "";
+    const p = normalizePhone(state.phone);
+    $("phoneErr").textContent = p.error || ""; $("phoneErr").hidden = !p.error;
+  }
+
+  // ===== Mensagem (mesmo formato do ABTS14) =====
+  function buildMessage(scope) {
+    const parts = [`*RELATÓRIO DE VISTORIA - ${CHECKLIST.title.replace("CHECKLIST - ", "")}*`, `📅 ${br(state.date)}`, "", "*Informações*"];
+    parts.push(`• VTR: ${state.vtr === "Outra" ? state.vtrOther.trim() : state.vtr}`);
+    for (const q of CHECKLIST.questions) { const a = (state.answers[q.id] || "").trim(); if (a) parts.push(`• ${q.text}: ${a}`); }
+    let ok = 0, alt = 0, none = 0;
+    for (const b of CHECKLIST.blocks) {
+      const lines = [];
+      b.items.forEach((name, i) => {
+        const r = state.items[itemId(b, i)];
+        if (r?.status === "ok") { ok++; if (scope === "all") lines.push(`✅ ${name} (Conforme)`); }
+        else if (r?.status === "alt") { alt++; const d = (r.detail || "").replace(/\s*\n\s*/g, " ").trim(); lines.push(`⚠️ ${name} (${r.altType || "Alteração"})${d ? `: ${d}` : ""}`); }
+        else { none++; if (scope === "all") lines.push(`⬜ ${name}`); }
+      });
+      const note = (state.notes[b.id] || "").trim();
+      if (!lines.length && !note) continue;
+      parts.push("", `*▪ ${b.title.toLocaleUpperCase("pt-BR")}*`, ...lines);
+      if (note) parts.push("📝 _Observações:_", note);
+    }
+    const pl = (n, a, b) => `${n} ${n === 1 ? a : b}`;
+    const resumo = [`✅ ${pl(ok, "conforme", "conformes")}`, `⚠️ ${pl(alt, "alteração", "alterações")}`];
+    if (none) resumo.push(`⬜ ${none} sem resposta`);
+    parts.push("", `*Resumo:* ${resumo.join(" · ")}`);
+    return parts.join("\n");
+  }
+
+  function fmtPhone(d) { const n = d.startsWith("55") ? d.slice(2) : d; return n.length === 11 ? `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}` : n.length === 10 ? `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}` : "+" + d; }
+
+  function renderResult() {
+    const scope = document.querySelector('input[name="scope"]:checked').value;
+    const msg = buildMessage(scope), digits = normalizePhone(state.phone).digits;
+    const url = `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
+    const long = url.length > WA_URL_SAFE_LENGTH;
+    $("usedPhone").textContent = "Número usado: " + fmtPhone(digits);
+    $("waBtn").href = url; $("waBtn").hidden = long; $("longWarn").hidden = !long;
+    const m = /^(https:\/\/wa\.me\/55\d{2})9(\d{8})(\?.*)$/.exec(url);
+    $("wa8Btn").hidden = !m || long; if (m) $("wa8Btn").href = m[1] + m[2] + m[3];
+    $("preview").textContent = msg;
+  }
+  document.querySelectorAll('input[name="scope"]').forEach((r) => r.onchange = renderResult);
+
+  $("sendBtn").onclick = () => {
+    const m = missing();
+    if (m.length) {
+      showMissing = true; renderBlocks();
+      renderMissing();
+      document.querySelectorAll("details.block").forEach((d) => { if (d.querySelector(".missing")) d.open = true; });
+      (document.querySelector(".item.missing") || $("missingBox")).scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    $("missingBox").hidden = true;
+    $("formView").hidden = true; $("bar").hidden = true; $("resultView").hidden = false;
+    renderResult(); window.scrollTo({ top: 0 });
+  };
+  $("editBtn").onclick = () => { $("resultView").hidden = true; $("formView").hidden = false; $("bar").hidden = false; };
+  $("copyBtn").onclick = async () => {
+    try { await navigator.clipboard.writeText($("preview").textContent); $("copyBtn").textContent = "Texto copiado ✓"; }
+    catch { $("copyBtn").textContent = "Abra “Ver mensagem” e copie"; }
+    setTimeout(() => { $("copyBtn").textContent = "Copiar texto"; }, 2500);
+  };
+  $("newBtn").onclick = () => {
+    if (!confirm("Começar uma nova vistoria? O que foi marcado será apagado (o número do oficial fica).")) return;
+    const phone = state.phone; state = { ...blank(), phone }; save(); showMissing = false;
+    renderInfo(); renderBlocks(); $("resultView").hidden = true; $("formView").hidden = false; $("bar").hidden = false; window.scrollTo({ top: 0 });
+  };
+
+  renderInfo(); renderBlocks();
+</script>
+</body>
+</html>
