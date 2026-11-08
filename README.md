@@ -84,3 +84,14 @@ Mesmo padrão do Checklist ABTS14: página pública para o efetivo + painel admi
   (leitura pública, alteração só admin; já vem com os itens atuais) e `mb_vistorias` (envio público; ler/excluir só admin).
 - Itens têm `id` fixo: renomear ou reordenar não bagunça rascunhos. Vistorias guardam o nome do item na hora do envio.
 - Aparece na página dos usuários (id `mata-branca`, botão de visibilidade no cartão do portal).
+
+## Acessos (administradores) na página principal
+Seção **Acessos** no fim do portal: listar administradores, criar (senha gerada ou digitada), redefinir senha,
+remover e "Minha senha". Mesmas regras do Admin → Acessos do Checklist: só administrador usa; ninguém remove
+a si mesmo; sempre fica pelo menos um administrador; senha de 10 a 72 caracteres; conta já nasce confirmada.
+Quem é criado aqui entra no portal, no admin do Checklist, no SisVTR e no admin do Mata Branca (mesmo login).
+
+Servidor: `api/admins.js` (função da Vercel, sem dependências). **Configurar uma vez** na Vercel, projeto
+`admin-cbmce` → Settings → Environment Variables: `SUPABASE_SERVICE_ROLE_KEY` = a mesma chave secreta
+(service_role / sb_secret) que já está no projeto `vistoria-whatsapp`. Depois: Deployments → Redeploy.
+Nunca colocar essa chave no código, no chat ou em arquivos.
