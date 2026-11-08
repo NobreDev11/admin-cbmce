@@ -119,7 +119,6 @@
         <span id="userEmail"></span>
         <a class="ghost" href="/mata-branca" target="_blank" rel="noopener">Abrir checklist ↗</a>
         <a class="ghost" href="/">← Portal</a>
-        <button class="ghost" id="logoutBtn" type="button">Sair</button>
       </div>
     </div>
     <nav class="wrap tabs" role="tablist" id="tabs" hidden>
@@ -559,12 +558,7 @@
       showTab(["resumo", "vistorias", "checklist"].includes(t) ? t : "resumo");
     })();
 
-    $("logoutBtn").addEventListener("click", async () => {
-      if (draft && saved && dirty() && !confirm("Há alterações no checklist não salvas. Sair mesmo assim?")) return;
-      leaving = true;
-      if (sb) await sb.auth.signOut({ scope: "local" });
-      location.replace("/");
-    });
+    // Sem "Sair" aqui: o painel volta ao portal ("← Portal") e a conta só é encerrada no portal.
   </script>
 </body>
 </html>

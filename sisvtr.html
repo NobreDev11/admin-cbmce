@@ -428,7 +428,7 @@
 <body class="locked">
   <div class="gate" id="gate">Carregando SisVTR…</div>
   <div class="wrap">
-    <header><div class="top-actions"><span id="userEmail"></span><a class="top-btn" href="/">← Portal</a><button class="top-btn" id="logoutBtn" type="button">Sair</button></div>
+    <header><div class="top-actions"><span id="userEmail"></span><a class="top-btn" href="/">← Portal</a></div>
       <h1>SisVTR — 7ª CIA/1º BBM (CISP)</h1>
       <div class="sub" id="sub">Carregando…</div>
     </header>
@@ -624,7 +624,7 @@
       if (!DATA.length) gate('A tabela do SisVTR está vazia. Rode o SQL com a base da planilha (ver README).');
     })();
 
-    document.getElementById('logoutBtn').addEventListener('click', async () => {if (sb) await sb.auth.signOut({scope: 'local'}); location.replace('/')});
+    // Sem "Sair" aqui: volta ao portal ("← Portal"); a conta só é encerrada no portal.
   </script>
 </body>
 
