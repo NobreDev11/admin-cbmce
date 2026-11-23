@@ -70,6 +70,8 @@ CREATE TABLE IF NOT EXISTS public.onibus_solicitacoes (
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (ano, seq)
 );
+-- Horário de saída pode ficar "a definir" (vazio).
+ALTER TABLE public.onibus_solicitacoes ALTER COLUMN saida DROP NOT NULL;
 CREATE INDEX IF NOT EXISTS onibus_solicitacoes_datas_idx ON public.onibus_solicitacoes USING gin (datas);
 
 -- Número automático AAAA/NNNN (no fuso de Fortaleza), sem repetir mesmo com dois cadastros ao mesmo tempo.
