@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>CBMCE - Ônibus</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚌</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: institucional, direto, de quartel — formulário de serviço bem preenchido.
+   IDEA: a "ficha de solicitação de viatura" do CBMCE, com número, carimbo de status e campos numerados.
+   PICTURE: o próprio formulário e o livro de registros (histórico) são o centro da página.
+   COLOUR e TYPE: vermelho bombeiro dominante, grafite de apoio, amarelo de sinalização como acento; Barlow / Barlow Condensed.
+   LAYOUT: faixa vermelha com abas; uma coluna calma no formulário; tabela-registro no histórico; cadastros em grade. */
+:root{color-scheme:light dark;
+  --bg:light-dark(#f4f2ef,#141416);--paper:light-dark(#ffffff,#1e1e22);--ink:light-dark(#1b1b1d,#ecebe8);
+  --mute:light-dark(#5f5d5a,#a9a7a2);--line:light-dark(#dedad4,#34343a);--soft:light-dark(#f8f6f3,#25252a);
+  --red:#b3141b;--red2:light-dark(#8e0f15,#d9353b);--yel:#f2b705;--ok:light-dark(#1f7a3a,#4cc274);--blue:light-dark(#1d5d8f,#6aa8dc);}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;line-height:1.05;margin:0;font-weight:700}
+header{background:var(--red);color:#fff}
+.top{max-width:1240px;margin:0 auto;padding:18px max(4vw,16px) 0;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;gap:14px;align-items:center;flex:1 1 280px}
+.brand svg{flex:none}
+.brand h1{font-size:clamp(28px,4vw,40px)}
+.brand p{margin:2px 0 0;opacity:.85;font-size:15px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+nav{max-width:1240px;margin:14px auto 0;padding:0 max(4vw,16px);display:flex;gap:4px;overflow-x:auto}
+nav a{color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px 8px 0 0;font-weight:600;white-space:nowrap;opacity:.85}
+nav a[aria-current=page]{background:var(--bg);color:var(--ink);opacity:1}
+main{max-width:1240px;margin:0 auto;padding:28px max(4vw,16px) 60px}
+[hidden]{display:none!important}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:clamp(16px,3vw,28px)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.head h2{font-size:32px}.head p{margin:4px 0 0;color:var(--mute)}
+.num{font-family:"Barlow Condensed";font-size:20px;color:var(--red2);border:2px solid var(--red2);padding:2px 10px;border-radius:6px;white-space:nowrap}
+fieldset{border:0;border-top:1px solid var(--line);margin:0;padding:20px 0 6px}
+fieldset:first-of-type{border-top:0;padding-top:0}
+legend{font-family:"Barlow Condensed";font-weight:700;font-size:20px;padding:0;margin-bottom:12px;display:flex;gap:10px;align-items:center}
+legend b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:5px}
+label .req{color:var(--red2)}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px}
+textarea{min-height:80px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--yel);outline-offset:1px}
+.hint{font-size:13px;color:var(--mute);margin-top:4px}
+button,.btn{font:inherit;font-weight:600;font-size:15px;min-height:44px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+button.pri{background:var(--red);border-color:var(--red);color:#fff}
+button.pri:hover{background:#9a1016}
+button.ghost{background:transparent;border-color:rgba(255,255,255,.55);color:#fff}
+button.sm{min-height:36px;padding:5px 10px;font-size:14px}
+button.del{color:var(--red2)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 12px;font-weight:600;font-size:14px;white-space:nowrap}
+.chip button{min-height:28px;width:28px;padding:0;justify-content:center;border-radius:50%;border:0;background:transparent;color:var(--mute)}
+.alert{border-radius:8px;padding:10px 14px;margin-top:12px;font-size:15px;border:1px solid}
+.alert.warn{background:light-dark(#fff6da,#3a3112);border-color:#e3b23c}
+.alert.err{background:light-dark(#fde8e8,#3c1a1b);border-color:var(--red2)}
+.pax{display:grid;gap:8px}
+.pax .p{display:grid;grid-template-columns:32px minmax(0,2fr) minmax(0,1fr) 44px;gap:8px;align-items:center}
+.pax .p span{color:var(--mute);font-weight:600;text-align:right}
+.actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.stat b{display:block;font-family:"Barlow Condensed";font-size:34px;line-height:1}
+.stat span{color:var(--mute);font-size:14px}
+.filters{display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+@media(max-width:860px){.filters{grid-template-columns:1fr 1fr}.filters .q{grid-column:1/-1}}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:13px;color:var(--mute);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:hover{background:var(--soft)}
+td.n{font-family:"Barlow Condensed";font-size:17px;white-space:nowrap}
+.nw{white-space:nowrap}
+.sub{display:block;color:var(--mute);font-size:13px}
+.st{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap;border:1px solid}
+.st.Pendente{color:light-dark(#8a5a00,#f2c14e);border-color:#e3b23c;background:light-dark(#fff6da,#3a3112)}
+.st.Aprovada{color:var(--blue);border-color:var(--blue)}
+.st.EmAndamento{color:#fff;background:var(--blue);border-color:var(--blue)}
+.st.Concluida{color:var(--ok);border-color:var(--ok)}
+.st.Cancelada{color:var(--mute);border-color:var(--line);text-decoration:line-through}
+.empty{text-align:center;color:var(--mute);padding:40px 10px}
+.cads{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:18px}
+.cads h3{font-size:24px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cads h3 small{font-family:Barlow;font-size:14px;color:var(--mute);font-weight:500}
+.cads form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;align-items:end;margin-bottom:12px}
+.list{max-height:340px;overflow:auto}
+dialog{border:0;border-radius:14px;padding:0;max-width:min(760px,94vw);width:100%;background:var(--paper);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(20,10,10,.55)}
+.dhead{background:var(--red);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.dhead h2{font-size:26px}
+.dbody{padding:20px 22px;max-height:70vh;overflow:auto}
+.ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:2px 18px}
+.ficha div{padding:8px 0;border-bottom:1px dashed var(--line)}
+.ficha dt{font-size:13px;color:var(--mute)}.ficha dd{margin:0;font-weight:600}
+.ficha .full{grid-column:1/-1}
+.log{font-size:14px;color:var(--mute);padding-left:18px}
+.dfoot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+
+.login{max-width:400px;margin:20px auto 0}
+.login h2{font-size:30px;margin-bottom:6px}.login p{color:var(--mute);margin:0 0 16px}
+.login form{display:grid;gap:14px}
+.gate{text-align:center;color:var(--mute);padding:60px 10px}
+.who{display:flex;gap:8px;align-items:center;font-size:14px;opacity:.95;flex-wrap:wrap}
+.who span{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+a.ghost{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.55);border-radius:8px;padding:5px 10px;font-weight:600;min-height:36px;display:inline-flex;align-items:center}
+.acc{display:grid;gap:8px;list-style:none;margin:0;padding:0}
+.acc li{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.acc li b{word-break:break-all}
+.msg{border-radius:8px;padding:10px 14px;margin:12px 0;font-size:15px;background:light-dark(#e3f3ea,#1b3326);color:var(--ok)}
+.msg.err{background:light-dark(#fde8e8,#3c1a1b);color:var(--red2)}
+.pw{display:flex;gap:8px}.pw input{font-family:ui-monospace,Consolas,monospace}
+body.busy{cursor:progress}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--ink);color:var(--paper);padding:12px 20px;border-radius:10px;font-weight:600;transition:transform .25s;z-index:99;max-width:90vw}
+#toast.on{transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+.banner{background:light-dark(#fff6da,#3a3112);border:1px solid #e3b23c;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:15px}
+@media(max-width:600px){table{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;color:var(--mute);font-size:13px}.stack td:empty{display:none}
+ .pax .p{grid-template-columns:24px minmax(0,1fr) 44px}.pax .p input+input{grid-column:2}.pax .p button{grid-row:1}}
+@media print{header,nav,main,.dfoot,#toast{display:none!important}body{background:#fff;color:#000}dialog{position:static;box-shadow:none;max-width:none;max-height:none}dialog::backdrop{display:none}.dbody{max-height:none;overflow:visible}.dhead{background:#fff;color:#000;border-bottom:3px solid #b3141b}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+<!-- Estatísticas de uso anônimas (painel central CBMCE) -->
+<script defer src="https://cbmce-aluno-escala-atgb.vercel.app/rastro.js?s=onibus"></script>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand">
+      <svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><rect x="3" y="9" width="46" height="30" rx="6" fill="#fff"/><rect x="8" y="14" width="10" height="9" rx="2" fill="#b3141b"/><rect x="21" y="14" width="10" height="9" rx="2" fill="#b3141b"/><rect x="34" y="14" width="10" height="9" rx="2" fill="#b3141b"/><rect x="3" y="28" width="46" height="4" fill="#f2b705"/><circle cx="14" cy="41" r="5" fill="#1b1b1d" stroke="#fff" stroke-width="2"/><circle cx="38" cy="41" r="5" fill="#1b1b1d" stroke="#fff" stroke-width="2"/></svg>
+      <div><h1>CBMCE · Ônibus</h1><p>Controle de solicitações de transporte</p></div>
+    </div>
+    <div class="tools" id="tools" hidden>
+      <div class="who"><span id="userEmail"></span>
+        <button class="ghost sm" id="bSenha" type="button">Minha senha</button>
+        <a class="ghost" id="bPortal" href="/" hidden>← Portal</a>
+        <button class="ghost sm" id="bSair" type="button" hidden>Sair</button>
+      </div>
+    </div>
+  </div>
+  <nav aria-label="Seções" id="nav" hidden>
+    <a href="#nova" data-v="nova">Nova solicitação</a>
+    <a href="#historico" data-v="historico">Histórico</a>
+    <a href="#cadastros" data-v="cadastros">Cadastros</a>
+    <a href="#acessos" data-v="acessos" id="navAcessos" hidden>Acessos</a>
+  </nav>
+</header>
+
+<main>
+<div class="gate" id="gate">Carregando…</div>
+
+<!-- LOGIN PRÓPRIO -->
+<section id="v-login" hidden>
+  <div class="card login">
+    <h2>Entrar</h2>
+    <p>Acesso dos operadores do Ônibus. Administradores do portal usam o mesmo e-mail e senha do portal.</p>
+    <form id="fLogin" novalidate>
+      <div id="loginErr"></div>
+      <div><label for="lEmail">E-mail</label><input type="email" id="lEmail" autocomplete="username" required></div>
+      <div><label for="lSenha">Senha</label><input type="password" id="lSenha" autocomplete="current-password" required></div>
+      <button class="pri" type="submit" id="bEntrar" style="justify-content:center">Entrar</button>
+    </form>
+  </div>
+</section>
+
+<!-- NOVA SOLICITAÇÃO -->
+<section id="v-nova" hidden>
+  <form class="card" id="fSol" novalidate>
+    <div class="head">
+      <div><h2 id="solTitle">Nova solicitação</h2><p>Campos com <span style="color:var(--red2)">*</span> são obrigatórios.</p></div>
+      <span class="num" id="solNum"></span>
+    </div>
+
+    <fieldset><legend><b>1</b>Solicitante</legend>
+      <div class="grid">
+        <div><label for="sSolic">Solicitante <span class="req">*</span></label><input id="sSolic" list="dlSolic" autocomplete="off" maxlength="200" placeholder="Nome / posto ou graduação"><div class="hint">Escolha da lista ou digite um novo.</div></div>
+        <div><label for="sSetor">Setor / OBM</label><input id="sSetor" maxlength="200" placeholder="Ex.: 1º BBM"></div>
+        <div><label for="sContato">Contato</label><input id="sContato" inputmode="tel" maxlength="100" placeholder="(85) 9 0000-0000"></div>
+      </div>
+    </fieldset>
+
+    <fieldset><legend><b>2</b>Local e finalidade</legend>
+      <div class="grid">
+        <div><label for="sLocal">Local / destino <span class="req">*</span></label><input id="sLocal" list="dlLocal" autocomplete="off" maxlength="300" placeholder="Ex.: Academia de Bombeiros"></div>
+        <div><label for="sSaidaDe">Local de saída</label><input id="sSaidaDe" list="dlLocal" autocomplete="off" maxlength="300" placeholder="Ex.: Quartel do Comando-Geral"></div>
+        <div><label for="sFinal">Finalidade</label><input id="sFinal" maxlength="300" placeholder="Ex.: Transporte de alunos para instrução"></div>
+      </div>
+    </fieldset>
+
+    <fieldset><legend><b>3</b>Data(s) e horários</legend>
+      <div class="row">
+        <div style="flex:1 1 170px"><label for="dUma">Data</label><input type="date" id="dUma"></div>
+        <button type="button" id="bAddData">Adicionar data</button>
+        <div style="flex:1 1 150px"><label for="dDe">Período: de</label><input type="date" id="dDe"></div>
+        <div style="flex:1 1 150px"><label for="dAte">até</label><input type="date" id="dAte"></div>
+        <button type="button" id="bAddPer">Adicionar período</button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="grid" style="margin-top:14px">
+        <div><label for="sSaida">Horário de saída <span class="req">*</span></label><input type="time" id="sSaida"></div>
+        <div><label for="sCheg">Previsão de chegada</label><input type="time" id="sCheg"></div>
+      </div>
+    </fieldset>
+
+    <fieldset><legend><b>4</b>Viatura e condutor</legend>
+      <div class="grid">
+        <div><label for="sVtr">Viatura <span class="req">*</span></label><select id="sVtr"></select></div>
+        <div><label for="sCond">Condutor <span class="req">*</span></label><select id="sCond"></select></div>
+        <div><label for="sStatus">Situação</label><select id="sStatus"></select></div>
+      </div>
+      <div id="conflitos"></div>
+    </fieldset>
+
+    <fieldset><legend><b>5</b>Passageiros <span class="sub" id="paxCount" style="font-family:Barlow;font-weight:500"></span></legend>
+      <div class="pax" id="pax"></div>
+      <div class="row" style="margin-top:10px">
+        <button type="button" id="bAddPax">+ Passageiro</button>
+        <button type="button" id="bColar">Colar lista</button>
+        <div style="flex:0 1 200px"><label for="sQtd">Quantidade total</label><input type="number" id="sQtd" min="0" max="999" inputmode="numeric"></div>
+      </div>
+      <div class="hint">A quantidade é preenchida pela lista; ajuste se houver passageiros sem nome informado.</div>
+      <div id="colarBox" hidden style="margin-top:10px"><label for="tColar">Um passageiro por linha (opcional: nome; identificação)</label><textarea id="tColar" rows="5" placeholder="SD João Silva; 123.456-7"></textarea><div class="row" style="margin-top:8px"><button type="button" class="pri" id="bColarOk">Incluir na lista</button></div></div>
+      <div id="capAlert"></div>
+    </fieldset>
+
+    <fieldset><legend><b>6</b>Observações</legend>
+      <textarea id="sObs" maxlength="2000" placeholder="Bagagem, materiais, paradas, contato no destino…"></textarea>
+    </fieldset>
+
+    <div id="formErr"></div>
+    <div class="actions">
+      <button type="button" id="bLimpar">Limpar</button>
+      <button type="submit" class="pri" id="bSalvar">Registrar solicitação</button>
+    </div>
+  </form>
+</section>
+
+<!-- HISTÓRICO -->
+<section id="v-historico" hidden>
+  <div class="head"><div><h2>Histórico de solicitações</h2><p id="histSub"></p></div>
+    <div class="row"><button type="button" id="bAtualizar">Atualizar</button><button type="button" id="bExport">Exportar CSV</button><button class="pri" type="button" id="bNova">+ Nova solicitação</button></div></div>
+  <div class="stats" id="stats"></div>
+  <div class="card">
+    <div class="filters">
+      <div class="q"><label for="fQ">Buscar</label><input id="fQ" placeholder="Nº, solicitante, local, passageiro…"></div>
+      <div><label for="fSt">Situação</label><select id="fSt"></select></div>
+      <div><label for="fVtr">Viatura</label><select id="fVtr"></select></div>
+      <div><label for="fDe">De</label><input type="date" id="fDe"></div>
+      <div><label for="fAte">Até</label><input type="date" id="fAte"></div>
+    </div>
+    <div class="scroll"><table class="stack" id="tHist"><thead><tr><th>Nº</th><th>Data(s)</th><th>Horário</th><th>Solicitante</th><th>Local</th><th>Viatura / condutor</th><th>Pass.</th><th>Situação</th><th></th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<!-- CADASTROS -->
+<section id="v-cadastros" hidden>
+  <div class="head"><div><h2>Cadastros</h2><p>Itens usados nas listas da solicitação. Solicitações antigas guardam os nomes como foram registrados.</p></div></div>
+  <div class="cads" id="cads"></div>
+</section>
+
+<!-- ACESSOS (só administrador do portal) -->
+<section id="v-acessos" hidden>
+  <div class="head"><div><h2>Acessos — operadores do Ônibus</h2><p>Quem entra só neste sistema, com login próprio em <b id="linkOnibus"></b>. Operador não abre o portal nem os outros painéis.</p></div>
+    <button class="pri" type="button" id="bNovoOp">+ Novo operador</button></div>
+  <div class="card">
+    <form id="fOp" hidden novalidate style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)">
+      <div class="grid">
+        <div><label for="opEmail">E-mail</label><input type="email" id="opEmail" autocomplete="off" placeholder="nome@exemplo.com"></div>
+        <div><label for="opSenha">Senha (10 a 72 caracteres)</label><div class="pw"><input id="opSenha" autocomplete="new-password" spellcheck="false"><button type="button" id="opGerar">Gerar</button><button type="button" id="opCopiar">Copiar</button></div></div>
+      </div>
+      <p class="hint">A conta já nasce confirmada. Entregue a senha por um canal seguro; a pessoa pode trocar depois em "Minha senha".</p>
+      <div class="row"><button class="pri" type="submit" id="opCriar">Criar operador</button><button type="button" id="opCancelar">Cancelar</button></div>
+    </form>
+    <div id="opMsg"></div>
+    <ul class="acc" id="opList"><li>Carregando…</li></ul>
+  </div>
+</section>
+</main>
+
+<datalist id="dlSolic"></datalist><datalist id="dlLocal"></datalist>
+
+<dialog id="dlg"><div class="dhead"><h2 id="dlgT"></h2><button class="ghost sm" type="button" id="dlgX">Fechar</button></div><div class="dbody" id="dlgB"></div><div class="dfoot" id="dlgF"></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+{
+const STATUS=['Pendente','Aprovada','Em andamento','Concluída','Cancelada'];
+const T_SOL='onibus_solicitacoes',T_CAD='onibus_cadastros';
+const stc=s=>s.normalize('NFD').replace(/[̀-ͯ\s]/g,'');
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtTs=iso=>iso?new Date(iso).toLocaleString('pt-BR',{timeZone:'America/Fortaleza'}):'';
+const agora=()=>fmtTs(new Date().toISOString());
+const hoje=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Fortaleza'}).format(new Date());
+const br=d=>d?d.split('-').reverse().join('/'):'';
+const addDia=(d,n)=>{const x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
+const withTimeout=(p,ms=15000)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+
+const CADS={
+  solicitantes:{t:'Solicitantes',f:[['nome','Nome / posto',1],['setor','Setor / OBM'],['contato','Contato']],lbl:x=>x.nome},
+  viaturas:{t:'Viaturas',f:[['prefixo','Prefixo',1],['placa','Placa'],['modelo','Modelo'],['capacidade','Lugares','number']],lbl:x=>x.prefixo+(x.placa?' · '+x.placa:'')},
+  condutores:{t:'Condutores',f:[['nome','Nome / posto',1],['matricula','Matrícula'],['cnh','CNH (cat.)'],['contato','Contato']],lbl:x=>x.nome},
+  locais:{t:'Locais',f:[['nome','Local',1],['endereco','Endereço / cidade']],lbl:x=>x.nome}
+};
+
+const cfg=window.ADMIN_CONFIG||{};
+let sb=null,me={email:'',admin:false},db={cad:{solicitantes:[],viaturas:[],condutores:[],locais:[]},sol:[]},ready=false;
+
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3000)}
+function falha(error,acao){const m=String(error&&error.message||'');
+  if(/row-level security|permission denied/i.test(m))return toast('Sem permissão para '+acao+'.');
+  if(/fetch|network|timeout/i.test(m))return toast('Sem conexão. Tente de novo.');
+  toast('Não foi possível '+acao+'. Tente de novo.')}
+function gate(msg){const g=$('#gate');g.innerHTML=msg;g.hidden=false;document.querySelectorAll('main>section').forEach(s=>s.hidden=true)}
+
+/* ---------- dados (Supabase) ---------- */
+const fromRow=r=>({id:r.id,numero:r.numero,criado:fmtTs(r.created_at),solicitante:r.solicitante,setor:r.setor||'',contato:r.contato||'',local:r.local,saidaDe:r.saida_de||'',finalidade:r.finalidade||'',
+  datas:(r.datas||[]).slice().sort(),saida:(r.saida||'').slice(0,5),chegada:(r.chegada||'').slice(0,5),viaturaId:r.viatura_id,viatura:r.viatura||'',condutorId:r.condutor_id,condutor:r.condutor||'',
+  passageiros:Array.isArray(r.passageiros)?r.passageiros:[],qtd:r.qtd||0,status:r.status,obs:r.obs||'',log:Array.isArray(r.log)?r.log:[]});
+const toRow=s=>({solicitante:s.solicitante,setor:s.setor,contato:s.contato,local:s.local,saida_de:s.saidaDe,finalidade:s.finalidade,datas:s.datas,saida:s.saida,chegada:s.chegada||null,
+  viatura_id:s.viaturaId||null,viatura:s.viatura,condutor_id:s.condutorId||null,condutor:s.condutor,passageiros:s.passageiros,qtd:s.qtd,status:s.status,obs:s.obs,log:s.log});
+async function loadAll(){
+  const c=await sb.from(T_CAD).select('id,tipo,dados').order('created_at');if(c.error)throw c.error;
+  const sol=[];for(let from=0;;from+=1000){const r=await sb.from(T_SOL).select('*').order('created_at').range(from,from+999);if(r.error)throw r.error;sol.push(...r.data);if(r.data.length<1000)break}
+  const cad={solicitantes:[],viaturas:[],condutores:[],locais:[]};
+  for(const r of c.data)if(cad[r.tipo])cad[r.tipo].push({...(r.dados||{}),id:r.id});
+  for(const k in cad){const f=CADS[k].f[0][0];cad[k].sort((a,b)=>String(a[f]||'').localeCompare(String(b[f]||''),'pt-BR'))}
+  db={cad,sol:sol.map(fromRow)};
+}
+async function recarregar(){try{await withTimeout(loadAll(),30000)}catch(e){falha(e,'atualizar os dados');return false}
+  const v=location.hash.slice(1);if(v==='historico')renderHist();if(v==='cadastros')renderCads();if(v==='nova')fillSelects();return true}
+const logItem=a=>({q:agora(),a,u:me.email});
+
+/* ---------- navegação ---------- */
+const VIEWS=['nova','historico','cadastros','acessos'];
+function route(){if(!ready)return;
+  let v=location.hash.slice(1);if(!VIEWS.includes(v)||(v==='acessos'&&!me.admin))v='historico';
+  $('#gate').hidden=true;
+  document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='v-'+v);
+  document.querySelectorAll('nav a').forEach(a=>{if(a.dataset.v===v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  if(v==='historico')renderHist();if(v==='cadastros')renderCads();if(v==='acessos')loadOps();
+  if(v==='nova'){fillSelects();if(!editId&&!$('#solNum').textContent)resetForm()}
+  window.scrollTo(0,0)}
+addEventListener('hashchange',route);
+$('#bNova').onclick=()=>{resetForm();location.hash='nova'};
+$('#bAtualizar').onclick=async()=>{if(await recarregar())toast('Dados atualizados.')};
+
+/* ---------- formulário ---------- */
+let datas=[],editId=null;
+function proxNum(){const a=hoje().slice(0,4);const n=db.sol.filter(s=>s.numero.startsWith(a)).map(s=>+s.numero.split('/')[1]||0);return a+'/'+String((n.length?Math.max(...n):0)+1).padStart(4,'0')}
+function fillSelects(){
+  const vs=$('#sVtr').value,cs=$('#sCond').value,ss=$('#sStatus').value;
+  $('#sVtr').innerHTML='<option value="">Selecione…</option>'+db.cad.viaturas.map(v=>`<option value="${v.id}">${esc(CADS.viaturas.lbl(v))}${v.capacidade?' — '+esc(v.capacidade)+' lugares':''}</option>`).join('');
+  $('#sCond').innerHTML='<option value="">Selecione…</option>'+db.cad.condutores.map(c=>`<option value="${c.id}">${esc(c.nome)}${c.cnh?' — CNH '+esc(c.cnh):''}</option>`).join('');
+  $('#sStatus').innerHTML=STATUS.map(s=>`<option>${s}</option>`).join('');
+  $('#sVtr').value=vs;$('#sCond').value=cs;$('#sStatus').value=ss||'Pendente';
+  $('#dlSolic').innerHTML=db.cad.solicitantes.map(s=>`<option value="${esc(s.nome)}">${esc(s.setor||'')}</option>`).join('');
+  $('#dlLocal').innerHTML=db.cad.locais.map(s=>`<option value="${esc(s.nome)}">${esc(s.endereco||'')}</option>`).join('');
+}
+function renderChips(){datas.sort();$('#chips').innerHTML=datas.length?datas.map(d=>`<span class="chip">${br(d)}<button type="button" aria-label="Remover ${br(d)}" data-d="${d}">✕</button></span>`).join(''):'<span class="hint">Nenhuma data adicionada.</span>';checar()}
+$('#chips').addEventListener('click',e=>{const d=e.target.dataset.d;if(d){datas=datas.filter(x=>x!==d);renderChips()}});
+$('#bAddData').onclick=()=>{const d=$('#dUma').value;if(!d)return toast('Escolha a data.');if(datas.length>=92)return toast('Máximo de 92 datas.');if(!datas.includes(d))datas.push(d);$('#dUma').value='';renderChips()};
+$('#bAddPer').onclick=()=>{let a=$('#dDe').value,b=$('#dAte').value;if(!a||!b)return toast('Informe início e fim do período.');if(b<a)[a,b]=[b,a];for(let d=a;d<=b&&datas.length<92;d=addDia(d,1))if(!datas.includes(d))datas.push(d);$('#dDe').value=$('#dAte').value='';renderChips()};
+
+function paxRow(p={},i){return `<div class="p"><span>${i+1}</span><input placeholder="Nome / posto" maxlength="200" value="${esc(p.nome)}" aria-label="Passageiro ${i+1}"><input placeholder="Matrícula / RG" maxlength="100" value="${esc(p.ident)}" aria-label="Identificação ${i+1}"><button type="button" class="sm del" aria-label="Remover passageiro ${i+1}">✕</button></div>`}
+function getPax(){return [...document.querySelectorAll('#pax .p')].map(r=>{const i=r.querySelectorAll('input');return {nome:i[0].value.trim(),ident:i[1].value.trim()}}).filter(p=>p.nome||p.ident)}
+function setPax(l){$('#pax').innerHTML=l.map(paxRow).join('');syncQtd()}
+function syncQtd(){const n=getPax().length;const q=$('#sQtd');if(!q.value||+q.value<n)q.value=n||'';$('#paxCount').textContent=`— ${n} nominal(is)`;checar()}
+$('#bAddPax').onclick=()=>{$('#pax').insertAdjacentHTML('beforeend',paxRow({},document.querySelectorAll('#pax .p').length));$('#pax .p:last-child input').focus()};
+$('#pax').addEventListener('click',e=>{if(e.target.closest('button')){e.target.closest('.p').remove();setPax(getPax())}});
+$('#pax').addEventListener('change',()=>syncQtd());
+$('#bColar').onclick=()=>{$('#colarBox').hidden=!$('#colarBox').hidden;if(!$('#colarBox').hidden)$('#tColar').focus()};
+$('#bColarOk').onclick=()=>{const novos=$('#tColar').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const[a,...b]=l.split(/[;\t]/);return{nome:a.trim(),ident:b.join(' ').trim()}});setPax(getPax().concat(novos));$('#tColar').value='';$('#colarBox').hidden=true;toast(novos.length+' passageiro(s) incluído(s).')};
+['#sVtr','#sCond','#sSaida','#sCheg','#sQtd','#sStatus'].forEach(s=>$(s).addEventListener('change',checar));
+$('#sSolic').addEventListener('change',()=>{const s=db.cad.solicitantes.find(x=>x.nome===$('#sSolic').value);if(s){if(!$('#sSetor').value)$('#sSetor').value=s.setor||'';if(!$('#sContato').value)$('#sContato').value=s.contato||''}});
+
+const min=t=>t?+t.slice(0,2)*60+ +t.slice(3,5):null;
+function sobrepoe(a,b){const a1=min(a.saida),a2=min(a.chegada)??1440,b1=min(b.saida),b2=min(b.chegada)??1440;if(a1==null||b1==null)return true;return a1<(a2>a1?a2:1440)&&b1<(b2>b1?b2:1440)}
+function conflitos(s){return db.sol.filter(o=>o.id!==s.id&&o.status!=='Cancelada'&&s.status!=='Cancelada'&&o.datas.some(d=>s.datas.includes(d))&&sobrepoe(o,s)&&((s.viaturaId&&o.viaturaId===s.viaturaId)||(s.condutorId&&o.condutorId===s.condutorId)))}
+function checar(){
+  const s=coletar();const c=conflitos(s);
+  $('#conflitos').innerHTML=c.length?`<div class="alert warn"><b>Atenção — choque de agenda:</b><br>${c.map(o=>{const v=o.viaturaId===s.viaturaId,k=o.condutorId===s.condutorId;return `Nº ${esc(o.numero)} (${o.datas.filter(d=>s.datas.includes(d)).map(br).join(', ')}, ${esc(o.saida)}${o.chegada?'–'+esc(o.chegada):''}) já usa ${v?'esta viatura':''}${v&&k?' e ':''}${k?'este condutor':''}.`}).join('<br>')}</div>`:'';
+  const v=db.cad.viaturas.find(x=>x.id===s.viaturaId);
+  $('#capAlert').innerHTML=v&&v.capacidade&&s.qtd>+v.capacidade?`<div class="alert warn">A quantidade (${s.qtd}) ultrapassa os ${esc(v.capacidade)} lugares de ${esc(v.prefixo)}.</div>`:'';
+  const ch=$('#sCheg').value,sa=$('#sSaida').value;
+  if(ch&&sa&&ch<=sa)$('#capAlert').insertAdjacentHTML('beforeend','<div class="alert warn">A chegada é igual ou anterior à saída — confira se o retorno é no dia seguinte.</div>');
+}
+function coletar(){
+  const vid=$('#sVtr').value,cid=$('#sCond').value,v=db.cad.viaturas.find(x=>x.id===vid),c=db.cad.condutores.find(x=>x.id===cid);
+  return {id:editId,solicitante:$('#sSolic').value.trim(),setor:$('#sSetor').value.trim(),contato:$('#sContato').value.trim(),local:$('#sLocal').value.trim(),saidaDe:$('#sSaidaDe').value.trim(),finalidade:$('#sFinal').value.trim(),
+    datas:[...datas].sort(),saida:$('#sSaida').value,chegada:$('#sCheg').value,viaturaId:vid,viatura:v?CADS.viaturas.lbl(v):'',condutorId:cid,condutor:c?c.nome:'',passageiros:getPax(),qtd:Math.min(999,+$('#sQtd').value||getPax().length),status:$('#sStatus').value||'Pendente',obs:$('#sObs').value.trim()}
+}
+function resetForm(){editId=null;datas=[];$('#fSol').reset();fillSelects();$('#sStatus').value='Pendente';setPax([]);$('#sQtd').value='';renderChips();$('#solTitle').textContent='Nova solicitação';$('#solNum').textContent='Nº previsto '+proxNum();$('#bSalvar').textContent='Registrar solicitação';$('#formErr').innerHTML='';$('#conflitos').innerHTML='';$('#capAlert').innerHTML=''}
+$('#bLimpar').onclick=()=>{resetForm();toast('Formulário limpo.')};
+function carregar(s,dup){
+  fillSelects();editId=dup?null:s.id;datas=dup?[]:[...s.datas];
+  const set=(k,v)=>$(k).value=v??'';
+  set('#sSolic',s.solicitante);set('#sSetor',s.setor);set('#sContato',s.contato);set('#sLocal',s.local);set('#sSaidaDe',s.saidaDe);set('#sFinal',s.finalidade);
+  set('#sSaida',s.saida);set('#sCheg',s.chegada);set('#sVtr',db.cad.viaturas.some(v=>v.id===s.viaturaId)?s.viaturaId:'');set('#sCond',db.cad.condutores.some(v=>v.id===s.condutorId)?s.condutorId:'');
+  set('#sStatus',dup?'Pendente':s.status);set('#sObs',s.obs);setPax(s.passageiros||[]);$('#sQtd').value=s.qtd||'';renderChips();
+  $('#solTitle').textContent=dup?'Nova solicitação (cópia)':'Editar solicitação';$('#solNum').textContent=dup?'Nº previsto '+proxNum():'Nº '+s.numero;$('#bSalvar').textContent=dup?'Registrar solicitação':'Salvar alterações';
+  if(location.hash==='#nova')window.scrollTo(0,0);else location.hash='nova';
+}
+async function autoCadastro(s){
+  const novos=[];
+  if(s.solicitante&&!db.cad.solicitantes.some(x=>(x.nome||'').toLowerCase()===s.solicitante.toLowerCase()))novos.push({tipo:'solicitantes',dados:{nome:s.solicitante,setor:s.setor,contato:s.contato}});
+  const ls=new Set();for(const l of [s.local,s.saidaDe])if(l&&!ls.has(l.toLowerCase())&&!db.cad.locais.some(x=>(x.nome||'').toLowerCase()===l.toLowerCase())){ls.add(l.toLowerCase());novos.push({tipo:'locais',dados:{nome:l,endereco:''}})}
+  if(novos.length)await sb.from(T_CAD).insert(novos);
+}
+$('#fSol').addEventListener('submit',async e=>{e.preventDefault();
+  const s=coletar(),err=[];
+  if(!s.solicitante)err.push('Solicitante');if(!s.local)err.push('Local / destino');if(!s.datas.length)err.push('Ao menos uma data');if(!s.saida)err.push('Horário de saída');if(!s.viaturaId)err.push('Viatura');if(!s.condutorId)err.push('Condutor');
+  if(err.length){$('#formErr').innerHTML=`<div class="alert err"><b>Preencha:</b> ${err.join(', ')}.</div>`;$('#formErr').scrollIntoView({block:'center'});return}
+  $('#formErr').innerHTML='';
+  const b=$('#bSalvar'),txt=b.textContent;b.disabled=true;b.textContent='Salvando…';
+  try{
+    const old=db.sol.find(x=>x.id===editId);let num;
+    if(old){s.log=[...old.log,logItem('Editada'+(old.status!==s.status?' — situação: '+s.status:''))];
+      const {error}=await withTimeout(sb.from(T_SOL).update(toRow(s)).eq('id',old.id));if(error)throw error;num=old.numero;toast('Solicitação Nº '+num+' atualizada.')}
+    else{s.log=[logItem('Registrada — situação: '+s.status)];
+      const {data,error}=await withTimeout(sb.from(T_SOL).insert(toRow(s)).select('numero').single());if(error)throw error;num=data.numero;toast('Solicitação Nº '+num+' registrada.')}
+    await autoCadastro(s).catch(()=>{});
+    resetForm();await recarregar();location.hash='historico';
+  }catch(x){falha(x,'salvar a solicitação')}finally{b.disabled=false;b.textContent=txt}
+});
+
+/* ---------- histórico ---------- */
+function fmtDatas(d){if(!d.length)return '—';if(d.length===1)return br(d[0]);
+  const seq=d.every((x,i)=>!i||addDia(d[i-1],1)===x);return seq?`${br(d[0]).slice(0,5)} a ${br(d.at(-1))}`:`${br(d[0])} <span class="sub">+${d.length-1} data(s)</span>`}
+function filtrar(){
+  const q=$('#fQ').value.toLowerCase().trim(),st=$('#fSt').value,vt=$('#fVtr').value,de=$('#fDe').value,ate=$('#fAte').value;
+  return db.sol.filter(s=>(!st||s.status===st)&&(!vt||s.viaturaId===vt)&&(!de||s.datas.some(d=>d>=de))&&(!ate||s.datas.some(d=>d<=ate))&&(!q||[s.numero,s.solicitante,s.setor,s.local,s.saidaDe,s.finalidade,s.viatura,s.condutor,s.obs,...s.passageiros.map(p=>(p.nome||'')+' '+(p.ident||''))].join(' ').toLowerCase().includes(q)))
+   .sort((a,b)=>(b.datas[0]||'').localeCompare(a.datas[0]||'')||b.numero.localeCompare(a.numero))
+}
+function renderHist(){
+  const fs=$('#fSt').value,fv=$('#fVtr').value;
+  $('#fSt').innerHTML='<option value="">Todas</option>'+STATUS.map(s=>`<option>${s}</option>`).join('');$('#fSt').value=fs;
+  $('#fVtr').innerHTML='<option value="">Todas</option>'+db.cad.viaturas.map(v=>`<option value="${v.id}">${esc(v.prefixo)}</option>`).join('');$('#fVtr').value=fv;
+  const h=hoje(),ativos=db.sol.filter(s=>s.status!=='Cancelada');const cnt=k=>db.sol.filter(s=>s.status===k).length;
+  $('#stats').innerHTML=[[db.sol.length,'Total registradas'],[cnt('Pendente'),'Pendentes'],[ativos.filter(s=>s.datas.includes(h)).length,'Saídas hoje'],[ativos.filter(s=>s.status!=='Concluída'&&s.datas.some(d=>d>h)).length,'Próximas'],[cnt('Concluída'),'Concluídas']].map(([n,t])=>`<div class="stat"><b>${n}</b><span>${t}</span></div>`).join('');
+  const l=filtrar();$('#histSub').textContent=`${l.length} de ${db.sol.length} solicitação(ões)`;
+  $('#tHist tbody').innerHTML=l.length?l.map(s=>`<tr>
+    <td class="n">${esc(s.numero)}</td><td class="nw">${fmtDatas(s.datas)}</td><td class="nw">${esc(s.saida)}${s.chegada?' – '+esc(s.chegada):''}</td>
+    <td>${esc(s.solicitante)}<span class="sub">${esc(s.setor)}</span></td><td>${esc(s.local)}<span class="sub">${esc(s.finalidade)}</span></td>
+    <td>${esc(s.viatura)}<span class="sub">${esc(s.condutor)}</span></td><td>${s.qtd||0}</td><td><span class="st ${stc(s.status)}">${esc(s.status)}</span></td>
+    <td class="nw"><button class="sm" data-a="ver" data-id="${s.id}">Ver</button> <button class="sm" data-a="edit" data-id="${s.id}">Editar</button></td></tr>`).join('')
+   :`<tr><td colspan="9" class="empty">${db.sol.length?'Nenhuma solicitação com esses filtros.':'Nenhuma solicitação registrada ainda. Comece pelos Cadastros (viaturas e condutores).'}</td></tr>`;
+}
+['#fQ','#fSt','#fVtr','#fDe','#fAte'].forEach(s=>$(s).addEventListener('input',renderHist));
+$('#tHist').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const s=db.sol.find(x=>x.id===b.dataset.id);if(!s)return;if(b.dataset.a==='ver')ficha(s);else carregar(s)});
+
+/* ---------- diálogo / ficha ---------- */
+const dlg=$('#dlg');$('#dlgX').onclick=()=>dlg.close();
+function abrir(t,b,f){$('#dlgT').textContent=t;$('#dlgB').innerHTML=b;$('#dlgF').innerHTML=f;try{if(!dlg.open)dlg.showModal()}catch(e){dlg.setAttribute('open','')}}
+function confirmar(msg,ok){abrir('Confirmar',`<p>${esc(msg)}</p>`,'<button type="button" id="cN">Cancelar</button><button type="button" class="pri" id="cS">Confirmar</button>');$('#cN').onclick=()=>dlg.close();$('#cS').onclick=()=>{dlg.close();ok()}}
+function ficha(s){
+  const it=(k,v,full)=>`<div${full?' class="full"':''}><dt>${k}</dt><dd>${v||'—'}</dd></div>`;
+  const pax=s.passageiros.length?`<ol style="margin:4px 0;padding-left:22px">${s.passageiros.map(p=>`<li>${esc(p.nome)}${p.ident?' <span class="sub" style="display:inline">— '+esc(p.ident)+'</span>':''}</li>`).join('')}</ol>`:'';
+  abrir('Solicitação Nº '+s.numero,`<dl class="ficha">
+    ${it('Situação',`<span class="st ${stc(s.status)}">${esc(s.status)}</span>`)}${it('Registrada em',esc(s.criado))}
+    ${it('Solicitante',esc(s.solicitante))}${it('Setor / OBM',esc(s.setor))}${it('Contato',esc(s.contato))}
+    ${it('Local / destino',esc(s.local))}${it('Local de saída',esc(s.saidaDe))}${it('Finalidade',esc(s.finalidade))}
+    ${it('Data(s)',s.datas.map(br).join(', '),1)}${it('Saída',esc(s.saida))}${it('Previsão de chegada',esc(s.chegada))}
+    ${it('Viatura',esc(s.viatura))}${it('Condutor',esc(s.condutor))}${it('Passageiros',(s.qtd||0)+' no total')}
+    ${pax?it('Relação nominal',pax,1):''}${s.obs?it('Observações',esc(s.obs).replace(/\n/g,'<br>'),1):''}
+    </dl>
+    <div class="row" style="margin-top:16px"><div style="flex:0 1 220px"><label for="mSt">Alterar situação</label><select id="mSt">${STATUS.map(x=>`<option${x===s.status?' selected':''}>${x}</option>`).join('')}</select></div><button type="button" class="pri" id="mStOk">Atualizar</button></div>
+    <h3 style="font-size:18px;margin-top:18px">Movimentações</h3><ul class="log">${s.log.map(l=>`<li>${esc(l.q)} — ${esc(l.a)}${l.u?' <i>('+esc(l.u)+')</i>':''}</li>`).join('')}</ul>`,
+   `${me.admin?'<button type="button" class="del" id="mDel">Excluir</button>':''}<button type="button" id="mDup">Duplicar</button><button type="button" id="mTxt">Copiar resumo</button><button type="button" id="mPrn">Imprimir</button><button type="button" class="pri" id="mEd">Editar</button>`);
+  $('#mStOk').onclick=async()=>{const n=$('#mSt').value;if(n===s.status)return;
+    const log=[...s.log,logItem('Situação: '+n)];
+    const {error}=await sb.from(T_SOL).update({status:n,log}).eq('id',s.id);
+    if(error)return falha(error,'alterar a situação');
+    await recarregar();const ns=db.sol.find(x=>x.id===s.id);if(ns)ficha(ns);toast('Situação atualizada.')};
+  $('#mEd').onclick=()=>{dlg.close();carregar(s)};$('#mDup').onclick=()=>{dlg.close();carregar(s,1)};
+  $('#mPrn').onclick=()=>{try{window.print()}catch(e){toast('Impressão indisponível.')}};
+  $('#mTxt').onclick=async()=>{const t=`*CBMCE · Ônibus — Solicitação Nº ${s.numero}*\nSituação: ${s.status}\nSolicitante: ${s.solicitante}${s.setor?' ('+s.setor+')':''}\nLocal: ${s.local}${s.saidaDe?'\nSaída de: '+s.saidaDe:''}${s.finalidade?'\nFinalidade: '+s.finalidade:''}\nData(s): ${s.datas.map(br).join(', ')}\nHorário: ${s.saida}${s.chegada?' às '+s.chegada:''}\nViatura: ${s.viatura}\nCondutor: ${s.condutor}\nPassageiros: ${s.qtd||0}${s.obs?'\nObs.: '+s.obs:''}`;
+    try{await navigator.clipboard.writeText(t);toast('Resumo copiado.')}catch(e){toast('Não foi possível copiar.')}};
+  if(me.admin)$('#mDel').onclick=()=>confirmar(`Excluir definitivamente a solicitação Nº ${s.numero}? Para manter o registro, prefira a situação "Cancelada".`,async()=>{
+    const {error}=await sb.from(T_SOL).delete().eq('id',s.id);if(error)return falha(error,'excluir');await recarregar();toast('Solicitação excluída.')});
+}
+
+/* ---------- cadastros ---------- */
+let cadEdit={};
+function renderCads(){
+  $('#cads').innerHTML=Object.entries(CADS).map(([k,c])=>{const l=db.cad[k],e=cadEdit[k]&&l.find(x=>x.id===cadEdit[k]);
+    return `<div class="card"><h3>${c.t} <small>${l.length} cadastrado(s)</small></h3>
+    <form data-k="${k}">${c.f.map(([f,t,o])=>`<div><label for="c-${k}-${f}">${t}${o===1?' <span class="req">*</span>':''}</label><input id="c-${k}-${f}" name="${f}" maxlength="200" ${o==='number'?'type="number" min="1" max="999" inputmode="numeric"':''} value="${esc(e?e[f]:'')}"></div>`).join('')}
+    <div class="row"><button class="pri" type="submit">${e?'Salvar':'Adicionar'}</button>${e?'<button type="button" data-cancel>Cancelar</button>':''}</div></form>
+    <div class="list"><table class="stack"><thead><tr>${c.f.map(f=>`<th>${f[1]}</th>`).join('')}<th></th></tr></thead><tbody>
+    ${l.length?l.map(x=>`<tr>${c.f.map(([f])=>`<td>${esc(x[f])}</td>`).join('')}<td class="nw"><button class="sm" data-k="${k}" data-e="${x.id}">Editar</button> <button class="sm del" data-k="${k}" data-r="${x.id}" aria-label="Excluir">✕</button></td></tr>`).join(''):`<tr><td colspan="${c.f.length+1}" class="empty">Nada cadastrado.</td></tr>`}
+    </tbody></table></div></div>`}).join('');
+}
+$('#cads').addEventListener('submit',async e=>{e.preventDefault();const k=e.target.dataset.k,c=CADS[k],o={};
+  for(const [f,,t] of c.f){o[f]=e.target.elements[f].value.trim();if(t==='number')o[f]=o[f]?+o[f]:''}
+  const req=c.f[0][0];if(!o[req])return toast('Preencha '+c.f[0][1]+'.');
+  if(db.cad[k].some(x=>x.id!==cadEdit[k]&&String(x[req]||'').toLowerCase()===String(o[req]).toLowerCase()))return toast('Já existe um cadastro com esse nome.');
+  const btn=e.target.querySelector('[type=submit]');btn.disabled=true;
+  const r=cadEdit[k]?await sb.from(T_CAD).update({dados:o,updated_at:new Date().toISOString()}).eq('id',cadEdit[k]):await sb.from(T_CAD).insert({tipo:k,dados:o});
+  btn.disabled=false;if(r.error)return falha(r.error,'salvar o cadastro');
+  delete cadEdit[k];await recarregar();toast(c.t+': salvo.')});
+$('#cads').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const f=b.closest('form');
+  if(b.hasAttribute('data-cancel')){delete cadEdit[f.dataset.k];renderCads();return}
+  const k=b.dataset.k;if(b.dataset.e){cadEdit[k]=b.dataset.e;renderCads();$(`#c-${k}-${CADS[k].f[0][0]}`).focus()}
+  if(b.dataset.r){const x=db.cad[k].find(y=>y.id===b.dataset.r);const uso=db.sol.filter(s=>s.viaturaId===x.id||s.condutorId===x.id).length;
+    confirmar(`Excluir "${CADS[k].lbl(x)}"?${uso?` Ele aparece em ${uso} solicitação(ões), que manterão o nome registrado.`:''}`,async()=>{const {error}=await sb.from(T_CAD).delete().eq('id',x.id);if(error)return falha(error,'excluir');await recarregar();toast('Excluído.')})}});
+
+/* ---------- exportar CSV ---------- */
+$('#bExport').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const cab=['Número','Situação','Registrada em','Solicitante','Setor','Contato','Local','Saída de','Finalidade','Datas','Saída','Chegada','Viatura','Condutor','Qtd. passageiros','Passageiros','Observações'];
+  const rows=filtrar().map(s=>[s.numero,s.status,s.criado,s.solicitante,s.setor,s.contato,s.local,s.saidaDe,s.finalidade,s.datas.map(br).join(', '),s.saida,s.chegada,s.viatura,s.condutor,s.qtd,s.passageiros.map(p=>p.nome+(p.ident?' ('+p.ident+')':'')).join(' | '),s.obs]);
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+[cab,...rows].map(r=>r.map(q).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='onibus-solicitacoes-'+hoje()+'.csv';document.body.appendChild(a);a.click();a.remove();toast('Planilha gerada ('+rows.length+' linhas).')};
+
+/* ---------- acessos dos operadores (só admin) ---------- */
+function genPassword(){const L='abcdefghijkmnopqrstuvwxyz',U='ABCDEFGHJKLMNPQRSTUVWXYZ',D='23456789',A=L+U+D;
+  const rnd=max=>{const lim=Math.floor(0x100000000/max)*max,b=new Uint32Array(1);for(;;){crypto.getRandomValues(b);if(b[0]<lim)return b[0]%max}};
+  const c=[L[rnd(L.length)],U[rnd(U.length)],D[rnd(D.length)]];while(c.length<16)c.push(A[rnd(A.length)]);
+  for(let i=c.length-1;i>0;i--){const j=rnd(i+1);[c[i],c[j]]=[c[j],c[i]]}return c.join('')}
+async function opsApi(payload){
+  const {data}=await sb.auth.getSession();const token=data.session&&data.session.access_token;
+  if(!token)return {ok:false,message:'Sessão expirada. Entre de novo.'};
+  try{const r=await withTimeout(fetch('/api/onibus-acessos',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(payload)}),20000);
+    const j=await r.json().catch(()=>null);return j||{ok:false,message:r.status===404?'Função de Acessos ainda não publicada.':'Resposta inválida do servidor.'}}
+  catch(e){return {ok:false,message:'O servidor não respondeu. Tente de novo.'}}}
+const opMsg=(t,err)=>{$('#opMsg').innerHTML=t?`<div class="msg${err?' err':''}">${esc(t)}</div>`:''};
+async function loadOps(){
+  $('#linkOnibus').textContent=location.origin+'/onibus';
+  const res=await opsApi({action:'list'});
+  if(!res.ok){$('#opList').innerHTML='';opMsg(res.setup?'Acessos ainda não configurado: falta a chave do Supabase na Vercel (ver README).':res.message,true);return}
+  $('#opList').innerHTML=res.operadores.map(o=>`<li><div><b>${esc(o.email)}</b><span class="sub">Último acesso: ${o.lastSignInAt?esc(fmtTs(o.lastSignInAt)):'nunca entrou'}</span></div>
+    <div class="row"><button class="sm" type="button" data-reset="${esc(o.userId)}" data-email="${esc(o.email)}">Redefinir senha</button><button class="sm del" type="button" data-remove="${esc(o.userId)}" data-email="${esc(o.email)}">Remover</button></div></li>`).join('')||'<li>Nenhum operador cadastrado. Administradores do portal já têm acesso.</li>';
+}
+$('#bNovoOp').onclick=()=>{$('#fOp').hidden=false;$('#opSenha').value=genPassword();$('#opEmail').focus()};
+$('#opCancelar').onclick=()=>{$('#fOp').hidden=true;$('#fOp').reset()};
+$('#opGerar').onclick=()=>{$('#opSenha').value=genPassword()};
+$('#opCopiar').onclick=async()=>{try{await navigator.clipboard.writeText($('#opSenha').value);toast('Senha copiada.')}catch(e){$('#opSenha').select();toast('Use Ctrl+C.')}};
+$('#fOp').addEventListener('submit',async e=>{e.preventDefault();
+  const email=$('#opEmail').value.trim(),password=$('#opSenha').value;
+  if(!email)return opMsg('Informe o e-mail.',true);if(password.length<10||password.length>72)return opMsg('A senha precisa ter de 10 a 72 caracteres.',true);
+  $('#opCriar').disabled=true;const res=await opsApi({action:'create',email,password});$('#opCriar').disabled=false;
+  opMsg(res.ok?res.message+' Entregue a senha e o link '+location.origin+'/onibus.':res.message,!res.ok);
+  if(res.ok){$('#fOp').hidden=true;$('#fOp').reset();loadOps()}});
+$('#opList').addEventListener('click',e=>{const r=e.target.closest('[data-reset]'),d=e.target.closest('[data-remove]');
+  if(r){const pw=genPassword();abrir('Redefinir senha',`<p>Nova senha para <b>${esc(r.dataset.email)}</b>:</p><div class="pw"><input id="rpSenha" value="${pw}" spellcheck="false"><button type="button" id="rpCopiar">Copiar</button></div><p class="hint">Copie antes de confirmar e entregue por um canal seguro.</p>`,'<button type="button" id="rpN">Cancelar</button><button type="button" class="pri" id="rpS">Redefinir</button>');
+    $('#rpCopiar').onclick=async()=>{try{await navigator.clipboard.writeText($('#rpSenha').value);toast('Senha copiada.')}catch(x){$('#rpSenha').select()}};
+    $('#rpN').onclick=()=>dlg.close();
+    $('#rpS').onclick=async()=>{const res=await opsApi({action:'reset',userId:r.dataset.reset,password:$('#rpSenha').value});dlg.close();opMsg(res.message,!res.ok)}}
+  if(d)confirmar(`Remover ${d.dataset.email}? A pessoa perde o acesso ao Ônibus.`,async()=>{const res=await opsApi({action:'remove',userId:d.dataset.remove});opMsg(res.message,!res.ok);if(res.ok)loadOps()})});
+
+/* ---------- minha senha / sair ---------- */
+$('#bSenha').onclick=()=>{abrir('Minha senha','<label for="msNova">Nova senha (10 a 72 caracteres)</label><input type="password" id="msNova" autocomplete="new-password"><div id="msErr"></div>','<button type="button" id="msN">Cancelar</button><button type="button" class="pri" id="msS">Alterar senha</button>');
+  $('#msN').onclick=()=>dlg.close();
+  $('#msS').onclick=async()=>{const pw=$('#msNova').value;if(pw.length<10||pw.length>72){$('#msErr').innerHTML='<div class="alert err">A senha precisa ter de 10 a 72 caracteres.</div>';return}
+    const {error}=await sb.auth.updateUser({password:pw}).catch(err=>({error:err}));
+    if(error){$('#msErr').innerHTML='<div class="alert err">'+(/weak|short|least/i.test(error.message||'')?'Senha fraca. Use uma mais longa, com letras e números.':'Não foi possível alterar. Tente de novo.')+'</div>';return}
+    dlg.close();toast('Sua senha foi alterada.')}};
+$('#bSair').onclick=async()=>{try{await sb.auth.signOut()}catch(e){}location.replace('/onibus')};
+
+/* ---------- entrada: login próprio ---------- */
+async function entrar(session){
+  const ok=await withTimeout(sb.rpc('is_onibus'));
+  if(ok.error){const m=ok.error.message||'';if(/is_onibus|could not find|does not exist/i.test(m)){gate('O Ônibus ainda não foi instalado no Supabase (rodar <b>supabase/onibus.sql</b> — ver README).');return false}throw ok.error}
+  if(ok.data!==true)return null;
+  const adm=await withTimeout(sb.rpc('is_admin'));
+  me={email:session.user.email||'',admin:!adm.error&&adm.data===true};
+  $('#userEmail').textContent=me.email;$('#tools').hidden=false;$('#nav').hidden=false;
+  $('#navAcessos').hidden=!me.admin;$('#bPortal').hidden=!me.admin;$('#bSair').hidden=me.admin;
+  gate('Carregando dados…');
+  await withTimeout(loadAll(),30000);
+  ready=true;route();return true;
+}
+function telaLogin(msg){$('#gate').hidden=true;document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='v-login');$('#loginErr').innerHTML=msg?`<div class="alert err">${esc(msg)}</div>`:'';$('#lEmail').focus()}
+$('#fLogin').addEventListener('submit',async e=>{e.preventDefault();
+  const email=$('#lEmail').value.trim(),password=$('#lSenha').value;if(!email||!password)return telaLogin('Informe e-mail e senha.');
+  const b=$('#bEntrar');b.disabled=true;b.textContent='Entrando…';
+  try{const {data,error}=await withTimeout(sb.auth.signInWithPassword({email,password}));
+    if(error)return telaLogin(/invalid|credentials/i.test(error.message||'')?'E-mail ou senha incorretos.':'Não foi possível entrar. Tente de novo.');
+    const r=await entrar(data.session);
+    if(r===null){await sb.auth.signOut({scope:'local'});telaLogin('Esta conta não tem acesso ao Ônibus. Peça acesso a um administrador.')}
+  }catch(x){telaLogin('Não foi possível entrar. Verifique a internet e tente de novo.')}
+  finally{b.disabled=false;b.textContent='Entrar'}});
+
+(async()=>{
+  if(!cfg.supabaseUrl||!cfg.supabasePublishableKey||!window.supabase)return gate('Configuração ausente (config.js).');
+  sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
+  try{const {data}=await withTimeout(sb.auth.getSession());
+    if(!data.session)return telaLogin();
+    const r=await entrar(data.session);
+    if(r===null)telaLogin('Esta conta ('+(data.session.user.email||'')+') não tem acesso ao Ônibus. Entre com uma conta de operador.');
+  }catch(e){gate('Não foi possível carregar o Ônibus. Verifique a internet e <a href="/onibus">recarregue a página</a>.')}
+})();
+}
+</script>
+</body>
+</html>

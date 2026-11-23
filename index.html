@@ -159,7 +159,7 @@
           <div class="access-head">
             <div>
               <h2 id="accessTitle">👤 Acessos</h2>
-              <p class="muted">Quem pode entrar neste painel (e nos painéis do Checklist, Escala e SisVTR). Mesmo login para todos.</p>
+              <p class="muted">Quem pode entrar neste painel (e nos painéis do Checklist, Escala, SisVTR e Ônibus). Mesmo login para todos. Operadores do Ônibus (só o Ônibus) são criados dentro do Ônibus, aba Acessos.</p>
             </div>
             <button class="btn btn-small" type="button" id="accNewBtn">+ Novo administrador</button>
           </div>
@@ -221,6 +221,11 @@
         url: "/mata-branca-admin", button: "Abrir admin do Mata Branca", userPage: "mata-branca"
       },
       { name: "SisVTR", icon: "🚑", description: "Dashboard da frota: viaturas e máquinas por OBM, situação, tipo e marca. Edição e exclusão de cadastros.", url: "/sisvtr", button: "Abrir SisVTR" },
+      {
+        name: "Ônibus", icon: "🚌",
+        description: "Solicitações de transporte: solicitante, local, datas, horários, viatura, condutor e passageiros. Histórico, cadastros e operadores com login próprio.",
+        url: "/onibus", button: "Abrir Ônibus", userPage: "onibus"
+      },
       { name: "SisDirso", icon: "📅", description: "Simulador e controle de plantões de DIRSO.", url: "", button: "Abrir SisDirso", userPage: "sisdirso" },
       {
         name: "Escala de Serviço", icon: "📋",
