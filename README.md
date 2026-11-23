@@ -95,3 +95,19 @@ Servidor: `api/admins.js` (função da Vercel, sem dependências). **Configurar 
 `admin-cbmce` → Settings → Environment Variables: `SUPABASE_SERVICE_ROLE_KEY` = a mesma chave secreta
 (service_role / sb_secret) que já está no projeto `vistoria-whatsapp`. Depois: Deployments → Redeploy.
 Nunca colocar essa chave no código, no chat ou em arquivos.
+
+## Ônibus (`/onibus`)
+Controle de solicitações de transporte (`onibus.html`): solicitante, local, data(s), horário de saída e previsão de chegada,
+viatura, condutor, passageiros e observações. Abas **Nova solicitação**, **Histórico** (busca, filtros, ficha, imprimir,
+copiar resumo, CSV), **Cadastros** (solicitantes, viaturas, condutores, locais) e **Acessos** (só administrador).
+- **Login próprio:** quem não é administrador entra direto em `https://admin-cbmce.vercel.app/onibus` com a conta de
+  **operador**. Operador usa só o Ônibus (não abre o portal nem os outros painéis) e tem "Sair" e "Minha senha".
+  Administrador do portal entra com o mesmo login e vê "← Portal" (sem "Sair", como os outros painéis).
+- **Operadores:** criados pelo administrador no próprio Ônibus → aba **Acessos** (criar, redefinir senha, remover).
+  Servidor `api/onibus-acessos.js` (usa a mesma `SUPABASE_SERVICE_ROLE_KEY` da Vercel; só administrador chama).
+  Remover operador apaga a conta; se a pessoa também for administrador, só sai da lista de operadores.
+- **Dados:** tabelas `onibus_solicitacoes` e `onibus_cadastros` no Supabase do Checklist, RLS `is_onibus()`
+  (= administrador **ou** operador). Nada é público. Excluir solicitação de vez: só administrador (operador usa "Cancelada").
+  Número automático `AAAA/NNNN` gerado no banco. Alertas de choque de agenda (mesma viatura/condutor), lotação e horário.
+- **Uma vez:** Supabase do Checklist → SQL Editor → colar `supabase/onibus.sql` → Run. Pode rodar de novo.
+- Na página dos usuários (id `onibus`) começa **oculto**; ative no botão do cartão do portal quando quiser divulgar o link.

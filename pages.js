@@ -20,6 +20,12 @@ window.USER_PAGES = [
     defaultVisible: false // até ser ativada no portal
   },
   {
+    id: "onibus", name: "Ônibus", icon: "🚌",
+    description: "Controle de solicitações de transporte (acesso com login de operador).",
+    url: "/onibus",
+    defaultVisible: false // até ser ativada no portal
+  },
+  {
     id: "sisdirso", name: "SisDirso", icon: "📅",
     description: "Simular e controlar plantões de DIRSO.",
     url: "https://sisdirso-cbmce.vercel.app/"
