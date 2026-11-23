@@ -161,10 +161,10 @@ body.busy{cursor:progress}
 <section id="v-login" hidden>
   <div class="card login">
     <h2>Entrar</h2>
-    <p>Acesso dos operadores do Ônibus. Administradores do portal usam o mesmo e-mail e senha do portal.</p>
+    <p>Operador: entre com seu <b>usuário</b> e senha. Administrador do portal: use o mesmo e-mail e senha do portal.</p>
     <form id="fLogin" novalidate>
       <div id="loginErr"></div>
-      <div><label for="lEmail">E-mail</label><input type="email" id="lEmail" autocomplete="username" required></div>
+      <div><label for="lEmail">Usuário ou e-mail</label><input id="lEmail" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
       <div><label for="lSenha">Senha</label><input type="password" id="lSenha" autocomplete="current-password" required></div>
       <button class="pri" type="submit" id="bEntrar" style="justify-content:center">Entrar</button>
     </form>
@@ -273,7 +273,7 @@ body.busy{cursor:progress}
   <div class="card">
     <form id="fOp" hidden novalidate style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)">
       <div class="grid">
-        <div><label for="opEmail">E-mail</label><input type="email" id="opEmail" autocomplete="off" placeholder="nome@exemplo.com"></div>
+        <div><label for="opEmail">Usuário</label><input id="opEmail" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" placeholder="ex.: joao.silva"><div class="hint">Letras minúsculas sem acento, números, ponto, hífen ou _ (3 a 30).</div></div>
         <div><label for="opSenha">Senha (10 a 72 caracteres)</label><div class="pw"><input id="opSenha" autocomplete="new-password" spellcheck="false"><button type="button" id="opGerar">Gerar</button><button type="button" id="opCopiar">Copiar</button></div></div>
       </div>
       <p class="hint">A conta já nasce confirmada. Entregue a senha por um canal seguro; a pessoa pode trocar depois em "Minha senha".</p>
@@ -314,6 +314,9 @@ const CADS={
 };
 
 const cfg=window.ADMIN_CONFIG||{};
+const DOMINIO='onibus.cbmce.local';
+const paraEmail=u=>{u=u.trim().toLowerCase();return u.includes('@')?u:u+'@'+DOMINIO};
+const nomeUsuario=e=>String(e||'').toLowerCase().endsWith('@'+DOMINIO)?e.slice(0,-DOMINIO.length-1):(e||'');
 let sb=null,me={email:'',admin:false},db={cad:{solicitantes:[],viaturas:[],condutores:[],locais:[]},sol:[]},ready=false;
 
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3000)}
@@ -538,18 +541,18 @@ async function loadOps(){
   $('#linkOnibus').textContent=location.origin+'/onibus';
   const res=await opsApi({action:'list'});
   if(!res.ok){$('#opList').innerHTML='';opMsg(res.setup?'Acessos ainda não configurado: falta a chave do Supabase na Vercel (ver README).':res.message,true);return}
-  $('#opList').innerHTML=res.operadores.map(o=>`<li><div><b>${esc(o.email)}</b><span class="sub">Último acesso: ${o.lastSignInAt?esc(fmtTs(o.lastSignInAt)):'nunca entrou'}</span></div>
-    <div class="row"><button class="sm" type="button" data-reset="${esc(o.userId)}" data-email="${esc(o.email)}">Redefinir senha</button><button class="sm del" type="button" data-remove="${esc(o.userId)}" data-email="${esc(o.email)}">Remover</button></div></li>`).join('')||'<li>Nenhum operador cadastrado. Administradores do portal já têm acesso.</li>';
+  $('#opList').innerHTML=res.operadores.map(o=>`<li><div><b>${esc(o.usuario)}</b><span class="sub">Último acesso: ${o.lastSignInAt?esc(fmtTs(o.lastSignInAt)):'nunca entrou'}</span></div>
+    <div class="row"><button class="sm" type="button" data-reset="${esc(o.userId)}" data-email="${esc(o.usuario)}">Redefinir senha</button><button class="sm del" type="button" data-remove="${esc(o.userId)}" data-email="${esc(o.usuario)}">Remover</button></div></li>`).join('')||'<li>Nenhum operador cadastrado. Administradores do portal já têm acesso.</li>';
 }
 $('#bNovoOp').onclick=()=>{$('#fOp').hidden=false;$('#opSenha').value=genPassword();$('#opEmail').focus()};
 $('#opCancelar').onclick=()=>{$('#fOp').hidden=true;$('#fOp').reset()};
 $('#opGerar').onclick=()=>{$('#opSenha').value=genPassword()};
 $('#opCopiar').onclick=async()=>{try{await navigator.clipboard.writeText($('#opSenha').value);toast('Senha copiada.')}catch(e){$('#opSenha').select();toast('Use Ctrl+C.')}};
 $('#fOp').addEventListener('submit',async e=>{e.preventDefault();
-  const email=$('#opEmail').value.trim(),password=$('#opSenha').value;
-  if(!email)return opMsg('Informe o e-mail.',true);if(password.length<10||password.length>72)return opMsg('A senha precisa ter de 10 a 72 caracteres.',true);
-  $('#opCriar').disabled=true;const res=await opsApi({action:'create',email,password});$('#opCriar').disabled=false;
-  opMsg(res.ok?res.message+' Entregue a senha e o link '+location.origin+'/onibus.':res.message,!res.ok);
+  const usuario=$('#opEmail').value.trim().toLowerCase(),password=$('#opSenha').value;
+  if(!usuario)return opMsg('Informe o usuário.',true);if(!usuario.includes('@')&&!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(usuario))return opMsg('Usuário inválido: 3 a 30 caracteres, só letras minúsculas sem acento, números, ponto, hífen ou _.',true);if(password.length<10||password.length>72)return opMsg('A senha precisa ter de 10 a 72 caracteres.',true);
+  $('#opCriar').disabled=true;const res=await opsApi({action:'create',usuario,password});$('#opCriar').disabled=false;
+  opMsg(res.ok?res.message+' Entregue o usuário, a senha e o link '+location.origin+'/onibus.':res.message,!res.ok);
   if(res.ok){$('#fOp').hidden=true;$('#fOp').reset();loadOps()}});
 $('#opList').addEventListener('click',e=>{const r=e.target.closest('[data-reset]'),d=e.target.closest('[data-remove]');
   if(r){const pw=genPassword();abrir('Redefinir senha',`<p>Nova senha para <b>${esc(r.dataset.email)}</b>:</p><div class="pw"><input id="rpSenha" value="${pw}" spellcheck="false"><button type="button" id="rpCopiar">Copiar</button></div><p class="hint">Copie antes de confirmar e entregue por um canal seguro.</p>`,'<button type="button" id="rpN">Cancelar</button><button type="button" class="pri" id="rpS">Redefinir</button>');
@@ -573,7 +576,7 @@ async function entrar(session){
   if(ok.error){const m=ok.error.message||'';if(/is_onibus|could not find|does not exist/i.test(m)){gate('O Ônibus ainda não foi instalado no Supabase (rodar <b>supabase/onibus.sql</b> — ver README).');return false}throw ok.error}
   if(ok.data!==true)return null;
   const adm=await withTimeout(sb.rpc('is_admin'));
-  me={email:session.user.email||'',admin:!adm.error&&adm.data===true};
+  me={email:nomeUsuario(session.user.email),admin:!adm.error&&adm.data===true};
   $('#userEmail').textContent=me.email;$('#tools').hidden=false;$('#nav').hidden=false;
   $('#navAcessos').hidden=!me.admin;$('#bPortal').hidden=!me.admin;$('#bSair').hidden=me.admin;
   gate('Carregando dados…');
@@ -582,10 +585,10 @@ async function entrar(session){
 }
 function telaLogin(msg){$('#gate').hidden=true;document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='v-login');$('#loginErr').innerHTML=msg?`<div class="alert err">${esc(msg)}</div>`:'';$('#lEmail').focus()}
 $('#fLogin').addEventListener('submit',async e=>{e.preventDefault();
-  const email=$('#lEmail').value.trim(),password=$('#lSenha').value;if(!email||!password)return telaLogin('Informe e-mail e senha.');
+  const ent=$('#lEmail').value.trim(),password=$('#lSenha').value;if(!ent||!password)return telaLogin('Informe usuário e senha.');const email=paraEmail(ent);
   const b=$('#bEntrar');b.disabled=true;b.textContent='Entrando…';
   try{const {data,error}=await withTimeout(sb.auth.signInWithPassword({email,password}));
-    if(error)return telaLogin(/invalid|credentials/i.test(error.message||'')?'E-mail ou senha incorretos.':'Não foi possível entrar. Tente de novo.');
+    if(error)return telaLogin(/invalid|credentials/i.test(error.message||'')?'Usuário ou senha incorretos.':'Não foi possível entrar. Tente de novo.');
     const r=await entrar(data.session);
     if(r===null){await sb.auth.signOut({scope:'local'});telaLogin('Esta conta não tem acesso ao Ônibus. Peça acesso a um administrador.')}
   }catch(x){telaLogin('Não foi possível entrar. Verifique a internet e tente de novo.')}
@@ -597,7 +600,7 @@ $('#fLogin').addEventListener('submit',async e=>{e.preventDefault();
   try{const {data}=await withTimeout(sb.auth.getSession());
     if(!data.session)return telaLogin();
     const r=await entrar(data.session);
-    if(r===null)telaLogin('Esta conta ('+(data.session.user.email||'')+') não tem acesso ao Ônibus. Entre com uma conta de operador.');
+    if(r===null)telaLogin('Esta conta ('+nomeUsuario(data.session.user.email)+') não tem acesso ao Ônibus. Entre com um usuário de operador.');
   }catch(e){gate('Não foi possível carregar o Ônibus. Verifique a internet e <a href="/onibus">recarregue a página</a>.')}
 })();
 }
