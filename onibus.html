@@ -185,7 +185,7 @@ input:disabled{opacity:.5}
 
     <fieldset><legend><b>1</b>Solicitante</legend>
       <div class="grid">
-        <div><label for="sSolic">Solicitante <span class="req">*</span></label><input id="sSolic" list="dlSolic" autocomplete="off" maxlength="200" placeholder="Nome / posto ou graduação"><div class="hint">Escolha da lista ou digite um novo.</div></div>
+        <div><label for="sSolic">Solicitante <span class="req">*</span></label><input id="sSolic" list="dlSolic" autocomplete="off" maxlength="200" placeholder="Nome / posto ou graduação"><div class="hint">Escolha da lista ou digite um novo.</div><label class="mini"><input type="checkbox" data-ad="solic"> Ainda a definir</label></div>
         <div><label for="sSetor">Setor / OBM</label><input id="sSetor" maxlength="200" placeholder="Ex.: 1º BBM"></div>
         <div><label for="sContato">Contato</label><input id="sContato" inputmode="tel" maxlength="100" placeholder="(85) 9 0000-0000"></div>
       </div>
@@ -193,7 +193,7 @@ input:disabled{opacity:.5}
 
     <fieldset><legend><b>2</b>Local e finalidade</legend>
       <div class="grid">
-        <div><label for="sLocal">Local / destino <span class="req">*</span></label><input id="sLocal" list="dlLocal" autocomplete="off" maxlength="300" placeholder="Ex.: Academia de Bombeiros"></div>
+        <div><label for="sLocal">Local / destino <span class="req">*</span></label><input id="sLocal" list="dlLocal" autocomplete="off" maxlength="300" placeholder="Ex.: Academia de Bombeiros"><label class="mini"><input type="checkbox" data-ad="local"> Ainda a definir</label></div>
         <div><label for="sSaidaDe">Local de saída</label><input id="sSaidaDe" list="dlLocal" autocomplete="off" maxlength="300" placeholder="Ex.: Quartel do Comando-Geral"></div>
         <div><label for="sFinal">Finalidade</label><input id="sFinal" maxlength="300" placeholder="Ex.: Transporte de alunos para instrução"></div>
       </div>
@@ -208,17 +208,18 @@ input:disabled{opacity:.5}
         <button type="button" id="bAddPer">Adicionar período</button>
       </div>
       <div class="chips" id="chips"></div>
+      <label class="mini"><input type="checkbox" data-ad="datas"> Data(s) ainda a definir</label>
       <div class="grid" style="margin-top:14px">
         <div><label for="sSaida">Horário de saída <span class="req">*</span></label><input type="time" id="sSaida"></div>
         <div><label for="sCheg">Previsão de chegada</label><input type="time" id="sCheg"></div>
       </div>
-      <label class="mini"><input type="checkbox" id="sAD"> Horário ainda a definir</label>
+      <label class="mini"><input type="checkbox" data-ad="horario"> Horário ainda a definir</label>
     </fieldset>
 
     <fieldset><legend><b>4</b>Viatura e condutor</legend>
       <div class="grid">
-        <div><label for="sVtr">Viatura <span class="req">*</span></label><select id="sVtr"></select></div>
-        <div><label for="sCond">Condutor <span class="req">*</span></label><select id="sCond"></select></div>
+        <div><label for="sVtr">Viatura <span class="req">*</span></label><select id="sVtr"></select><label class="mini"><input type="checkbox" data-ad="vtr"> Ainda a definir</label></div>
+        <div><label for="sCond">Condutor <span class="req">*</span></label><select id="sCond"></select><label class="mini"><input type="checkbox" data-ad="cond"> Ainda a definir</label></div>
         <div><label for="sStatus">Situação</label><select id="sStatus"></select></div>
       </div>
       <div id="conflitos"></div>
@@ -394,8 +395,14 @@ $('#pax').addEventListener('change',()=>syncQtd());
 $('#bColar').onclick=()=>{$('#colarBox').hidden=!$('#colarBox').hidden;if(!$('#colarBox').hidden)$('#tColar').focus()};
 $('#bColarOk').onclick=()=>{const novos=$('#tColar').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const[a,...b]=l.split(/[;\t]/);return{nome:a.trim(),ident:b.join(' ').trim()}});setPax(getPax().concat(novos));$('#tColar').value='';$('#colarBox').hidden=true;toast(novos.length+' passageiro(s) incluído(s).')};
 ['#sVtr','#sCond','#sSaida','#sCheg','#sQtd','#sStatus'].forEach(s=>$(s).addEventListener('change',checar));
-function setAD(on){$('#sAD').checked=on;for(const k of ['#sSaida','#sCheg']){$(k).disabled=on;if(on)$(k).value=''}checar()}
-$('#sAD').addEventListener('change',()=>setAD($('#sAD').checked));
+// "Ainda a definir": cada campo obrigatório pode ficar vazio de propósito (gravado vazio, mostrado como "A definir").
+const AD={solic:['#sSolic'],local:['#sLocal'],datas:['#dUma','#dDe','#dAte','#bAddData','#bAddPer'],horario:['#sSaida','#sCheg'],vtr:['#sVtr'],cond:['#sCond']};
+const adOn=k=>$(`[data-ad="${k}"]`).checked;
+function setAD(k,on){$(`[data-ad="${k}"]`).checked=on;for(const q of AD[k]){const el=$(q);el.disabled=on;if(on&&el.tagName!=='BUTTON')el.value=''}if(on&&k==='datas'&&datas.length){datas=[];renderChips()}checar()}
+document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.ad;if(k)setAD(k,e.target.checked)});
+const AD_TAG='<span class="tbd">A definir</span>';
+const ou=v=>v?esc(v):AD_TAG;
+const ouT=v=>v||'A definir';
 $('#sSolic').addEventListener('change',()=>{const s=db.cad.solicitantes.find(x=>x.nome===$('#sSolic').value);if(s){if(!$('#sSetor').value)$('#sSetor').value=s.setor||'';if(!$('#sContato').value)$('#sContato').value=s.contato||''}});
 
 const min=t=>t?+t.slice(0,2)*60+ +t.slice(3,5):null;
@@ -414,14 +421,15 @@ function coletar(){
   return {id:editId,solicitante:$('#sSolic').value.trim(),setor:$('#sSetor').value.trim(),contato:$('#sContato').value.trim(),local:$('#sLocal').value.trim(),saidaDe:$('#sSaidaDe').value.trim(),finalidade:$('#sFinal').value.trim(),
     datas:[...datas].sort(),saida:$('#sSaida').value,chegada:$('#sCheg').value,viaturaId:vid,viatura:v?CADS.viaturas.lbl(v):'',condutorId:cid,condutor:c?c.nome:'',passageiros:getPax(),qtd:Math.min(999,+$('#sQtd').value||getPax().length),status:$('#sStatus').value||'Pendente',obs:$('#sObs').value.trim()}
 }
-function resetForm(){editId=null;datas=[];$('#fSol').reset();fillSelects();$('#sStatus').value='Pendente';setAD(false);setPax([]);$('#sQtd').value='';renderChips();$('#solTitle').textContent='Nova solicitação';$('#solNum').textContent='Nº previsto '+proxNum();$('#bSalvar').textContent='Registrar solicitação';$('#formErr').innerHTML='';$('#conflitos').innerHTML='';$('#capAlert').innerHTML=''}
+function resetForm(){editId=null;datas=[];$('#fSol').reset();fillSelects();$('#sStatus').value='Pendente';Object.keys(AD).forEach(k=>setAD(k,false));setPax([]);$('#sQtd').value='';renderChips();$('#solTitle').textContent='Nova solicitação';$('#solNum').textContent='Nº previsto '+proxNum();$('#bSalvar').textContent='Registrar solicitação';$('#formErr').innerHTML='';$('#conflitos').innerHTML='';$('#capAlert').innerHTML=''}
 $('#bLimpar').onclick=()=>{resetForm();toast('Formulário limpo.')};
 function carregar(s,dup){
   fillSelects();editId=dup?null:s.id;datas=dup?[]:[...s.datas];
   const set=(k,v)=>$(k).value=v??'';
   set('#sSolic',s.solicitante);set('#sSetor',s.setor);set('#sContato',s.contato);set('#sLocal',s.local);set('#sSaidaDe',s.saidaDe);set('#sFinal',s.finalidade);
   set('#sSaida',s.saida);set('#sCheg',s.chegada);set('#sVtr',db.cad.viaturas.some(v=>v.id===s.viaturaId)?s.viaturaId:'');set('#sCond',db.cad.condutores.some(v=>v.id===s.condutorId)?s.condutorId:'');
-  set('#sStatus',dup?'Pendente':s.status);setAD(!s.saida);set('#sObs',s.obs);setPax(s.passageiros||[]);$('#sQtd').value=s.qtd||'';renderChips();
+  set('#sStatus',dup?'Pendente':s.status);set('#sObs',s.obs);setPax(s.passageiros||[]);$('#sQtd').value=s.qtd||'';renderChips();
+  setAD('solic',!s.solicitante);setAD('local',!s.local);setAD('datas',!dup&&!s.datas.length);setAD('horario',!s.saida);setAD('vtr',!s.viatura);setAD('cond',!s.condutor);
   $('#solTitle').textContent=dup?'Nova solicitação (cópia)':'Editar solicitação';$('#solNum').textContent=dup?'Nº previsto '+proxNum():'Nº '+s.numero;$('#bSalvar').textContent=dup?'Registrar solicitação':'Salvar alterações';
   if(location.hash==='#nova')window.scrollTo(0,0);else location.hash='nova';
 }
@@ -433,8 +441,8 @@ async function autoCadastro(s){
 }
 $('#fSol').addEventListener('submit',async e=>{e.preventDefault();
   const s=coletar(),err=[];
-  if(!s.solicitante)err.push('Solicitante');if(!s.local)err.push('Local / destino');if(!s.datas.length)err.push('Ao menos uma data');if(!s.saida&&!$('#sAD').checked)err.push('Horário de saída (ou marque "Horário ainda a definir")');if(!s.viaturaId)err.push('Viatura');if(!s.condutorId)err.push('Condutor');
-  if(err.length){$('#formErr').innerHTML=`<div class="alert err"><b>Preencha:</b> ${err.join(', ')}.</div>`;$('#formErr').scrollIntoView({block:'center'});return}
+  if(!s.solicitante&&!adOn('solic'))err.push('Solicitante');if(!s.local&&!adOn('local'))err.push('Local / destino');if(!s.datas.length&&!adOn('datas'))err.push('Ao menos uma data');if(!s.saida&&!adOn('horario'))err.push('Horário de saída');if(!s.viaturaId&&!adOn('vtr'))err.push('Viatura');if(!s.condutorId&&!adOn('cond'))err.push('Condutor');
+  if(err.length){$('#formErr').innerHTML=`<div class="alert err"><b>Preencha</b> (ou marque "Ainda a definir"): ${err.join(', ')}.</div>`;$('#formErr').scrollIntoView({block:'center'});return}
   $('#formErr').innerHTML='';
   const b=$('#bSalvar'),txt=b.textContent;b.disabled=true;b.textContent='Salvando…';
   try{
@@ -449,7 +457,7 @@ $('#fSol').addEventListener('submit',async e=>{e.preventDefault();
 });
 
 /* ---------- histórico ---------- */
-function fmtDatas(d){if(!d.length)return '—';if(d.length===1)return br(d[0]);
+function fmtDatas(d){if(!d.length)return AD_TAG;if(d.length===1)return br(d[0]);
   const seq=d.every((x,i)=>!i||addDia(d[i-1],1)===x);return seq?`${br(d[0]).slice(0,5)} a ${br(d.at(-1))}`:`${br(d[0])} <span class="sub">+${d.length-1} data(s)</span>`}
 function filtrar(){
   const q=$('#fQ').value.toLowerCase().trim(),st=$('#fSt').value,vt=$('#fVtr').value,de=$('#fDe').value,ate=$('#fAte').value;
@@ -465,8 +473,8 @@ function renderHist(){
   const l=filtrar();$('#histSub').textContent=`${l.length} de ${db.sol.length} solicitação(ões)`;
   $('#tHist tbody').innerHTML=l.length?l.map(s=>`<tr>
     <td class="n">${esc(s.numero)}</td><td class="nw">${fmtDatas(s.datas)}</td><td class="nw">${hr(s)}</td>
-    <td>${esc(s.solicitante)}<span class="sub">${esc(s.setor)}</span></td><td>${esc(s.local)}<span class="sub">${esc(s.finalidade)}</span></td>
-    <td>${esc(s.viatura)}<span class="sub">${esc(s.condutor)}</span></td><td>${s.qtd||0}</td><td><span class="st ${stc(s.status)}">${esc(s.status)}</span></td>
+    <td>${ou(s.solicitante)}<span class="sub">${esc(s.setor)}</span></td><td>${ou(s.local)}<span class="sub">${esc(s.finalidade)}</span></td>
+    <td>${ou(s.viatura)}<span class="sub">${s.condutor?esc(s.condutor):'Condutor a definir'}</span></td><td>${s.qtd||0}</td><td><span class="st ${stc(s.status)}">${esc(s.status)}</span></td>
     <td class="nw"><button class="sm" data-a="ver" data-id="${s.id}">Ver</button> <button class="sm" data-a="edit" data-id="${s.id}">Editar</button></td></tr>`).join('')
    :`<tr><td colspan="9" class="empty">${db.sol.length?'Nenhuma solicitação com esses filtros.':'Nenhuma solicitação registrada ainda. Comece pelos Cadastros (viaturas e condutores).'}</td></tr>`;
 }
@@ -482,10 +490,10 @@ function ficha(s){
   const pax=s.passageiros.length?`<ol style="margin:4px 0;padding-left:22px">${s.passageiros.map(p=>`<li>${esc(p.nome)}${p.ident?' <span class="sub" style="display:inline">— '+esc(p.ident)+'</span>':''}</li>`).join('')}</ol>`:'';
   abrir('Solicitação Nº '+s.numero,`<dl class="ficha">
     ${it('Situação',`<span class="st ${stc(s.status)}">${esc(s.status)}</span>`)}${it('Registrada em',esc(s.criado))}
-    ${it('Solicitante',esc(s.solicitante))}${it('Setor / OBM',esc(s.setor))}${it('Contato',esc(s.contato))}
-    ${it('Local / destino',esc(s.local))}${it('Local de saída',esc(s.saidaDe))}${it('Finalidade',esc(s.finalidade))}
-    ${it('Data(s)',s.datas.map(br).join(', '),1)}${it('Saída',s.saida?esc(s.saida):'<span class="tbd">A definir</span>')}${it('Previsão de chegada',s.chegada?esc(s.chegada):(s.saida?'':'<span class="tbd">A definir</span>'))}
-    ${it('Viatura',esc(s.viatura))}${it('Condutor',esc(s.condutor))}${it('Passageiros',(s.qtd||0)+' no total')}
+    ${it('Solicitante',ou(s.solicitante))}${it('Setor / OBM',esc(s.setor))}${it('Contato',esc(s.contato))}
+    ${it('Local / destino',ou(s.local))}${it('Local de saída',esc(s.saidaDe))}${it('Finalidade',esc(s.finalidade))}
+    ${it('Data(s)',s.datas.length?s.datas.map(br).join(', '):AD_TAG,1)}${it('Saída',s.saida?esc(s.saida):'<span class="tbd">A definir</span>')}${it('Previsão de chegada',s.chegada?esc(s.chegada):(s.saida?'':'<span class="tbd">A definir</span>'))}
+    ${it('Viatura',ou(s.viatura))}${it('Condutor',ou(s.condutor))}${it('Passageiros',(s.qtd||0)+' no total')}
     ${pax?it('Relação nominal',pax,1):''}${s.obs?it('Observações',esc(s.obs).replace(/\n/g,'<br>'),1):''}
     </dl>
     <div class="row" style="margin-top:16px"><div style="flex:0 1 220px"><label for="mSt">Alterar situação</label><select id="mSt">${STATUS.map(x=>`<option${x===s.status?' selected':''}>${x}</option>`).join('')}</select></div><button type="button" class="pri" id="mStOk">Atualizar</button></div>
@@ -498,7 +506,7 @@ function ficha(s){
     await recarregar();const ns=db.sol.find(x=>x.id===s.id);if(ns)ficha(ns);toast('Situação atualizada.')};
   $('#mEd').onclick=()=>{dlg.close();carregar(s)};$('#mDup').onclick=()=>{dlg.close();carregar(s,1)};
   $('#mPrn').onclick=()=>{try{window.print()}catch(e){toast('Impressão indisponível.')}};
-  $('#mTxt').onclick=async()=>{const t=`*CBMCE · Ônibus — Solicitação Nº ${s.numero}*\nSituação: ${s.status}\nSolicitante: ${s.solicitante}${s.setor?' ('+s.setor+')':''}\nLocal: ${s.local}${s.saidaDe?'\nSaída de: '+s.saidaDe:''}${s.finalidade?'\nFinalidade: '+s.finalidade:''}\nData(s): ${s.datas.map(br).join(', ')}\nHorário: ${hrTxt(s)}\nViatura: ${s.viatura}\nCondutor: ${s.condutor}\nPassageiros: ${s.qtd||0}${s.obs?'\nObs.: '+s.obs:''}`;
+  $('#mTxt').onclick=async()=>{const t=`*CBMCE · Ônibus — Solicitação Nº ${s.numero}*\nSituação: ${s.status}\nSolicitante: ${ouT(s.solicitante)}${s.setor?' ('+s.setor+')':''}\nLocal: ${ouT(s.local)}${s.saidaDe?'\nSaída de: '+s.saidaDe:''}${s.finalidade?'\nFinalidade: '+s.finalidade:''}\nData(s): ${ouT(s.datas.map(br).join(', '))}\nHorário: ${hrTxt(s)}\nViatura: ${ouT(s.viatura)}\nCondutor: ${ouT(s.condutor)}\nPassageiros: ${s.qtd||0}${s.obs?'\nObs.: '+s.obs:''}`;
     try{await navigator.clipboard.writeText(t);toast('Resumo copiado.')}catch(e){toast('Não foi possível copiar.')}};
   if(me.admin)$('#mDel').onclick=()=>confirmar(`Excluir definitivamente a solicitação Nº ${s.numero}? Para manter o registro, prefira a situação "Cancelada".`,async()=>{
     const {error}=await sb.from(T_SOL).delete().eq('id',s.id);if(error)return falha(error,'excluir');await recarregar();toast('Solicitação excluída.')});
@@ -532,7 +540,7 @@ $('#cads').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
 /* ---------- exportar CSV ---------- */
 $('#bExport').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const cab=['Número','Situação','Registrada em','Solicitante','Setor','Contato','Local','Saída de','Finalidade','Datas','Saída','Chegada','Viatura','Condutor','Qtd. passageiros','Passageiros','Observações'];
-  const rows=filtrar().map(s=>[s.numero,s.status,s.criado,s.solicitante,s.setor,s.contato,s.local,s.saidaDe,s.finalidade,s.datas.map(br).join(', '),s.saida||'A definir',s.chegada,s.viatura,s.condutor,s.qtd,s.passageiros.map(p=>p.nome+(p.ident?' ('+p.ident+')':'')).join(' | '),s.obs]);
+  const rows=filtrar().map(s=>[s.numero,s.status,s.criado,ouT(s.solicitante),s.setor,s.contato,ouT(s.local),s.saidaDe,s.finalidade,ouT(s.datas.map(br).join(', ')),s.saida||'A definir',s.chegada,ouT(s.viatura),ouT(s.condutor),s.qtd,s.passageiros.map(p=>p.nome+(p.ident?' ('+p.ident+')':'')).join(' | '),s.obs]);
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+[cab,...rows].map(r=>r.map(q).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
   a.download='onibus-solicitacoes-'+hoje()+'.csv';document.body.appendChild(a);a.click();a.remove();toast('Planilha gerada ('+rows.length+' linhas).')};
 
