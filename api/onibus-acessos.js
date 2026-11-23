@@ -7,6 +7,11 @@ const SUPABASE_URL = (process.env.SUPABASE_URL || "https://ytionrwdwdmcxbdgqnkt.
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Operador entra com USUÁRIO e senha. O Supabase exige e-mail, então o usuário vira um
+// e-mail interno (nunca recebe mensagens): joao.silva -> joao.silva@onibus.cbmce.local
+const DOMINIO = "onibus.cbmce.local";
+const USER_RE = /^[a-z0-9][a-z0-9._-]{2,29}$/;
+const nomeUsuario = (email) => String(email || "").toLowerCase().endsWith("@" + DOMINIO) ? email.slice(0, -DOMINIO.length - 1) : email;
 
 async function call(path, { method = "GET", body, headers } = {}) {
   const r = await fetch(SUPABASE_URL + path, {
@@ -64,7 +69,7 @@ async function list() {
     const u = await call(`/auth/v1/admin/users/${row.user_id}`);
     return {
       userId: row.user_id,
-      email: (u.ok && u.data && u.data.email) || "(sem e-mail)",
+      usuario: nomeUsuario((u.ok && u.data && u.data.email) || "") || "(sem usuário)",
       lastSignInAt: (u.ok && u.data && u.data.last_sign_in_at) || null,
     };
   }));
@@ -83,8 +88,14 @@ async function findUserIdByEmail(email) {
 }
 
 async function create(body) {
-  const email = String(body.email || "").trim().toLowerCase();
-  if (!email || email.length > 254 || !EMAIL_RE.test(email)) return { ok: false, message: "E-mail inválido." };
+  // Aceita usuário (padrão) ou um e-mail de verdade (ex.: dar acesso a quem já tem conta).
+  const entrada = String(body.usuario || "").trim().toLowerCase();
+  const email = entrada.includes("@") ? entrada : entrada + "@" + DOMINIO;
+  if (!entrada.includes("@") && !USER_RE.test(entrada)) {
+    return { ok: false, message: "Usuário inválido: 3 a 30 caracteres, só letras minúsculas sem acento, números, ponto, hífen ou _." };
+  }
+  if (email.length > 254 || !EMAIL_RE.test(email)) return { ok: false, message: "Usuário inválido." };
+  const nome = nomeUsuario(email);
   const bad = checkPassword(body.password);
   if (bad) return { ok: false, message: bad };
 
@@ -109,8 +120,8 @@ async function create(body) {
   return {
     ok: true,
     message: existing
-      ? `${email} já tinha conta e agora acessa o Ônibus (a senha dela não foi alterada).`
-      : `${email} criado como operador do Ônibus.`,
+      ? `${nome} já tinha conta e agora acessa o Ônibus (a senha não foi alterada).`
+      : `Usuário ${nome} criado.`,
   };
 }
 
