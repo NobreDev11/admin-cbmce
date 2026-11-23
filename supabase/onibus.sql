@@ -82,6 +82,9 @@ ALTER TABLE public.onibus_solicitacoes ADD CONSTRAINT onibus_solicitacoes_local_
 ALTER TABLE public.onibus_solicitacoes DROP CONSTRAINT IF EXISTS onibus_solicitacoes_datas_check;
 ALTER TABLE public.onibus_solicitacoes ALTER COLUMN datas SET DEFAULT '{}';
 ALTER TABLE public.onibus_solicitacoes ADD CONSTRAINT onibus_solicitacoes_datas_check CHECK (cardinality(datas) <= 92);
+-- Horário no local (compromisso no destino) e término, opcionais.
+ALTER TABLE public.onibus_solicitacoes ADD COLUMN IF NOT EXISTS hora_local time;
+ALTER TABLE public.onibus_solicitacoes ADD COLUMN IF NOT EXISTS hora_local_fim time;
 CREATE INDEX IF NOT EXISTS onibus_solicitacoes_datas_idx ON public.onibus_solicitacoes USING gin (datas);
 
 -- Número automático AAAA/NNNN (no fuso de Fortaleza), sem repetir mesmo com dois cadastros ao mesmo tempo.
