@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS public.onibus_operadores (
 ALTER TABLE public.onibus_operadores ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.onibus_operadores FROM anon, authenticated;
 GRANT SELECT ON public.onibus_operadores TO authenticated;
+-- A função do servidor (chave secreta = papel service_role) lista, cria e remove operadores.
+-- Projetos novos do Supabase não dão essa permissão sozinhos: é preciso o GRANT.
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.onibus_operadores TO service_role;
 DROP POLICY IF EXISTS "onibus operador ve a si mesmo" ON public.onibus_operadores;
 CREATE POLICY "onibus operador ve a si mesmo" ON public.onibus_operadores
   FOR SELECT TO authenticated USING (user_id = auth.uid() OR public.is_admin());
@@ -115,6 +118,7 @@ ALTER TABLE public.onibus_cadastros ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.onibus_solicitacoes ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.onibus_cadastros, public.onibus_solicitacoes FROM anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.onibus_cadastros, public.onibus_solicitacoes TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.onibus_cadastros, public.onibus_solicitacoes TO service_role;
 
 DROP POLICY IF EXISTS "onibus cad select" ON public.onibus_cadastros;
 CREATE POLICY "onibus cad select" ON public.onibus_cadastros FOR SELECT TO authenticated USING (public.is_onibus());
