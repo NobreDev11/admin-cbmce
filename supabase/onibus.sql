@@ -73,8 +73,15 @@ CREATE TABLE IF NOT EXISTS public.onibus_solicitacoes (
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (ano, seq)
 );
--- Horário de saída pode ficar "a definir" (vazio).
+-- Campos obrigatórios podem ficar "a definir" (vazios): solicitante, local, datas, horário, viatura, condutor.
 ALTER TABLE public.onibus_solicitacoes ALTER COLUMN saida DROP NOT NULL;
+ALTER TABLE public.onibus_solicitacoes DROP CONSTRAINT IF EXISTS onibus_solicitacoes_solicitante_check;
+ALTER TABLE public.onibus_solicitacoes ADD CONSTRAINT onibus_solicitacoes_solicitante_check CHECK (char_length(solicitante) <= 200);
+ALTER TABLE public.onibus_solicitacoes DROP CONSTRAINT IF EXISTS onibus_solicitacoes_local_check;
+ALTER TABLE public.onibus_solicitacoes ADD CONSTRAINT onibus_solicitacoes_local_check CHECK (char_length(local) <= 300);
+ALTER TABLE public.onibus_solicitacoes DROP CONSTRAINT IF EXISTS onibus_solicitacoes_datas_check;
+ALTER TABLE public.onibus_solicitacoes ALTER COLUMN datas SET DEFAULT '{}';
+ALTER TABLE public.onibus_solicitacoes ADD CONSTRAINT onibus_solicitacoes_datas_check CHECK (cardinality(datas) <= 92);
 CREATE INDEX IF NOT EXISTS onibus_solicitacoes_datas_idx ON public.onibus_solicitacoes USING gin (datas);
 
 -- Número automático AAAA/NNNN (no fuso de Fortaleza), sem repetir mesmo com dois cadastros ao mesmo tempo.
