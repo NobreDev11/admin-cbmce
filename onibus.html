@@ -197,6 +197,11 @@ input:disabled{opacity:.5}
         <div><label for="sSaidaDe">Local de saída</label><input id="sSaidaDe" list="dlLocal" autocomplete="off" maxlength="300" placeholder="Ex.: Quartel do Comando-Geral"></div>
         <div><label for="sFinal">Finalidade</label><input id="sFinal" maxlength="300" placeholder="Ex.: Transporte de alunos para instrução"></div>
       </div>
+      <div class="grid" style="margin-top:14px">
+        <div><label for="sHL">Horário no local</label><input type="time" id="sHL"><div class="hint">Hora do compromisso no destino (opcional).</div></div>
+        <div><label for="sHLF">Término no local</label><input type="time" id="sHLF"><div class="hint">Opcional.</div></div>
+        <div></div>
+      </div>
     </fieldset>
 
     <fieldset><legend><b>3</b>Data(s) e horários</legend>
@@ -336,9 +341,9 @@ function gate(msg){const g=$('#gate');g.innerHTML=msg;g.hidden=false;document.qu
 
 /* ---------- dados (Supabase) ---------- */
 const fromRow=r=>({id:r.id,numero:r.numero,criado:fmtTs(r.created_at),solicitante:r.solicitante,setor:r.setor||'',contato:r.contato||'',local:r.local,saidaDe:r.saida_de||'',finalidade:r.finalidade||'',
-  datas:(r.datas||[]).slice().sort(),saida:(r.saida||'').slice(0,5),chegada:(r.chegada||'').slice(0,5),viaturaId:r.viatura_id,viatura:r.viatura||'',condutorId:r.condutor_id,condutor:r.condutor||'',
+  datas:(r.datas||[]).slice().sort(),saida:(r.saida||'').slice(0,5),chegada:(r.chegada||'').slice(0,5),hl:(r.hora_local||'').slice(0,5),hlf:(r.hora_local_fim||'').slice(0,5),viaturaId:r.viatura_id,viatura:r.viatura||'',condutorId:r.condutor_id,condutor:r.condutor||'',
   passageiros:Array.isArray(r.passageiros)?r.passageiros:[],qtd:r.qtd||0,status:r.status,obs:r.obs||'',log:Array.isArray(r.log)?r.log:[]});
-const toRow=s=>({solicitante:s.solicitante,setor:s.setor,contato:s.contato,local:s.local,saida_de:s.saidaDe,finalidade:s.finalidade,datas:s.datas,saida:s.saida||null,chegada:s.chegada||null,
+const toRow=s=>({solicitante:s.solicitante,setor:s.setor,contato:s.contato,local:s.local,saida_de:s.saidaDe,finalidade:s.finalidade,datas:s.datas,saida:s.saida||null,chegada:s.chegada||null,hora_local:s.hl||null,hora_local_fim:s.hlf||null,
   viatura_id:s.viaturaId||null,viatura:s.viatura,condutor_id:s.condutorId||null,condutor:s.condutor,passageiros:s.passageiros,qtd:s.qtd,status:s.status,obs:s.obs,log:s.log});
 async function loadAll(){
   const c=await sb.from(T_CAD).select('id,tipo,dados').order('created_at');if(c.error)throw c.error;
@@ -351,6 +356,7 @@ async function loadAll(){
 async function recarregar(){try{await withTimeout(loadAll(),30000)}catch(e){falha(e,'atualizar os dados');return false}
   const v=location.hash.slice(1);if(v==='historico')renderHist();if(v==='cadastros')renderCads();if(v==='nova')fillSelects();return true}
 const hr=s=>s.saida?esc(s.saida)+(s.chegada?' – '+esc(s.chegada):''):'<span class="tbd">A definir</span>';
+const hlTxt=s=>s.hl?s.hl+(s.hlf?' às '+s.hlf:''):'';
 const hrTxt=s=>s.saida?s.saida+(s.chegada?' às '+s.chegada:''):'A definir';
 const logItem=a=>({q:agora(),a,u:me.email});
 
@@ -419,7 +425,7 @@ function checar(){
 function coletar(){
   const vid=$('#sVtr').value,cid=$('#sCond').value,v=db.cad.viaturas.find(x=>x.id===vid),c=db.cad.condutores.find(x=>x.id===cid);
   return {id:editId,solicitante:$('#sSolic').value.trim(),setor:$('#sSetor').value.trim(),contato:$('#sContato').value.trim(),local:$('#sLocal').value.trim(),saidaDe:$('#sSaidaDe').value.trim(),finalidade:$('#sFinal').value.trim(),
-    datas:[...datas].sort(),saida:$('#sSaida').value,chegada:$('#sCheg').value,viaturaId:vid,viatura:v?CADS.viaturas.lbl(v):'',condutorId:cid,condutor:c?c.nome:'',passageiros:getPax(),qtd:Math.min(999,+$('#sQtd').value||getPax().length),status:$('#sStatus').value||'Pendente',obs:$('#sObs').value.trim()}
+    datas:[...datas].sort(),saida:$('#sSaida').value,chegada:$('#sCheg').value,hl:$('#sHL').value,hlf:$('#sHLF').value,viaturaId:vid,viatura:v?CADS.viaturas.lbl(v):'',condutorId:cid,condutor:c?c.nome:'',passageiros:getPax(),qtd:Math.min(999,+$('#sQtd').value||getPax().length),status:$('#sStatus').value||'Pendente',obs:$('#sObs').value.trim()}
 }
 function resetForm(){editId=null;datas=[];$('#fSol').reset();fillSelects();$('#sStatus').value='Pendente';Object.keys(AD).forEach(k=>setAD(k,false));setPax([]);$('#sQtd').value='';renderChips();$('#solTitle').textContent='Nova solicitação';$('#solNum').textContent='Nº previsto '+proxNum();$('#bSalvar').textContent='Registrar solicitação';$('#formErr').innerHTML='';$('#conflitos').innerHTML='';$('#capAlert').innerHTML=''}
 $('#bLimpar').onclick=()=>{resetForm();toast('Formulário limpo.')};
@@ -427,7 +433,7 @@ function carregar(s,dup){
   fillSelects();editId=dup?null:s.id;datas=dup?[]:[...s.datas];
   const set=(k,v)=>$(k).value=v??'';
   set('#sSolic',s.solicitante);set('#sSetor',s.setor);set('#sContato',s.contato);set('#sLocal',s.local);set('#sSaidaDe',s.saidaDe);set('#sFinal',s.finalidade);
-  set('#sSaida',s.saida);set('#sCheg',s.chegada);set('#sVtr',db.cad.viaturas.some(v=>v.id===s.viaturaId)?s.viaturaId:'');set('#sCond',db.cad.condutores.some(v=>v.id===s.condutorId)?s.condutorId:'');
+  set('#sSaida',s.saida);set('#sCheg',s.chegada);set('#sHL',s.hl);set('#sHLF',s.hlf);set('#sVtr',db.cad.viaturas.some(v=>v.id===s.viaturaId)?s.viaturaId:'');set('#sCond',db.cad.condutores.some(v=>v.id===s.condutorId)?s.condutorId:'');
   set('#sStatus',dup?'Pendente':s.status);set('#sObs',s.obs);setPax(s.passageiros||[]);$('#sQtd').value=s.qtd||'';renderChips();
   setAD('solic',!s.solicitante);setAD('local',!s.local);setAD('datas',!dup&&!s.datas.length);setAD('horario',!s.saida);setAD('vtr',!s.viatura);setAD('cond',!s.condutor);
   $('#solTitle').textContent=dup?'Nova solicitação (cópia)':'Editar solicitação';$('#solNum').textContent=dup?'Nº previsto '+proxNum():'Nº '+s.numero;$('#bSalvar').textContent=dup?'Registrar solicitação':'Salvar alterações';
@@ -473,7 +479,7 @@ function renderHist(){
   const l=filtrar();$('#histSub').textContent=`${l.length} de ${db.sol.length} solicitação(ões)`;
   $('#tHist tbody').innerHTML=l.length?l.map(s=>`<tr>
     <td class="n">${esc(s.numero)}</td><td class="nw">${fmtDatas(s.datas)}</td><td class="nw">${hr(s)}</td>
-    <td>${ou(s.solicitante)}<span class="sub">${esc(s.setor)}</span></td><td>${ou(s.local)}<span class="sub">${esc(s.finalidade)}</span></td>
+    <td>${ou(s.solicitante)}<span class="sub">${esc(s.setor)}</span></td><td>${ou(s.local)}${s.hl?`<span class="sub">No local: ${esc(hlTxt(s))}</span>`:''}<span class="sub">${esc(s.finalidade)}</span></td>
     <td>${ou(s.viatura)}<span class="sub">${s.condutor?esc(s.condutor):'Condutor a definir'}</span></td><td>${s.qtd||0}</td><td><span class="st ${stc(s.status)}">${esc(s.status)}</span></td>
     <td class="nw"><button class="sm" data-a="ver" data-id="${s.id}">Ver</button> <button class="sm" data-a="edit" data-id="${s.id}">Editar</button></td></tr>`).join('')
    :`<tr><td colspan="9" class="empty">${db.sol.length?'Nenhuma solicitação com esses filtros.':'Nenhuma solicitação registrada ainda. Comece pelos Cadastros (viaturas e condutores).'}</td></tr>`;
@@ -491,7 +497,7 @@ function ficha(s){
   abrir('Solicitação Nº '+s.numero,`<dl class="ficha">
     ${it('Situação',`<span class="st ${stc(s.status)}">${esc(s.status)}</span>`)}${it('Registrada em',esc(s.criado))}
     ${it('Solicitante',ou(s.solicitante))}${it('Setor / OBM',esc(s.setor))}${it('Contato',esc(s.contato))}
-    ${it('Local / destino',ou(s.local))}${it('Local de saída',esc(s.saidaDe))}${it('Finalidade',esc(s.finalidade))}
+    ${it('Local / destino',ou(s.local))}${it('Horário no local',esc(hlTxt(s)))}${it('Local de saída',esc(s.saidaDe))}${it('Finalidade',esc(s.finalidade))}
     ${it('Data(s)',s.datas.length?s.datas.map(br).join(', '):AD_TAG,1)}${it('Saída',s.saida?esc(s.saida):'<span class="tbd">A definir</span>')}${it('Previsão de chegada',s.chegada?esc(s.chegada):(s.saida?'':'<span class="tbd">A definir</span>'))}
     ${it('Viatura',ou(s.viatura))}${it('Condutor',ou(s.condutor))}${it('Passageiros',(s.qtd||0)+' no total')}
     ${pax?it('Relação nominal',pax,1):''}${s.obs?it('Observações',esc(s.obs).replace(/\n/g,'<br>'),1):''}
@@ -506,7 +512,7 @@ function ficha(s){
     await recarregar();const ns=db.sol.find(x=>x.id===s.id);if(ns)ficha(ns);toast('Situação atualizada.')};
   $('#mEd').onclick=()=>{dlg.close();carregar(s)};$('#mDup').onclick=()=>{dlg.close();carregar(s,1)};
   $('#mPrn').onclick=()=>{try{window.print()}catch(e){toast('Impressão indisponível.')}};
-  $('#mTxt').onclick=async()=>{const t=`*CBMCE · Ônibus — Solicitação Nº ${s.numero}*\nSituação: ${s.status}\nSolicitante: ${ouT(s.solicitante)}${s.setor?' ('+s.setor+')':''}\nLocal: ${ouT(s.local)}${s.saidaDe?'\nSaída de: '+s.saidaDe:''}${s.finalidade?'\nFinalidade: '+s.finalidade:''}\nData(s): ${ouT(s.datas.map(br).join(', '))}\nHorário: ${hrTxt(s)}\nViatura: ${ouT(s.viatura)}\nCondutor: ${ouT(s.condutor)}\nPassageiros: ${s.qtd||0}${s.obs?'\nObs.: '+s.obs:''}`;
+  $('#mTxt').onclick=async()=>{const t=`*CBMCE · Ônibus — Solicitação Nº ${s.numero}*\nSituação: ${s.status}\nSolicitante: ${ouT(s.solicitante)}${s.setor?' ('+s.setor+')':''}\nLocal: ${ouT(s.local)}${s.hl?'\nHorário no local: '+hlTxt(s):''}${s.saidaDe?'\nSaída de: '+s.saidaDe:''}${s.finalidade?'\nFinalidade: '+s.finalidade:''}\nData(s): ${ouT(s.datas.map(br).join(', '))}\nHorário: ${hrTxt(s)}\nViatura: ${ouT(s.viatura)}\nCondutor: ${ouT(s.condutor)}\nPassageiros: ${s.qtd||0}${s.obs?'\nObs.: '+s.obs:''}`;
     try{await navigator.clipboard.writeText(t);toast('Resumo copiado.')}catch(e){toast('Não foi possível copiar.')}};
   if(me.admin)$('#mDel').onclick=()=>confirmar(`Excluir definitivamente a solicitação Nº ${s.numero}? Para manter o registro, prefira a situação "Cancelada".`,async()=>{
     const {error}=await sb.from(T_SOL).delete().eq('id',s.id);if(error)return falha(error,'excluir');await recarregar();toast('Solicitação excluída.')});
@@ -539,8 +545,8 @@ $('#cads').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
 
 /* ---------- exportar CSV ---------- */
 $('#bExport').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const cab=['Número','Situação','Registrada em','Solicitante','Setor','Contato','Local','Saída de','Finalidade','Datas','Saída','Chegada','Viatura','Condutor','Qtd. passageiros','Passageiros','Observações'];
-  const rows=filtrar().map(s=>[s.numero,s.status,s.criado,ouT(s.solicitante),s.setor,s.contato,ouT(s.local),s.saidaDe,s.finalidade,ouT(s.datas.map(br).join(', ')),s.saida||'A definir',s.chegada,ouT(s.viatura),ouT(s.condutor),s.qtd,s.passageiros.map(p=>p.nome+(p.ident?' ('+p.ident+')':'')).join(' | '),s.obs]);
+  const cab=['Número','Situação','Registrada em','Solicitante','Setor','Contato','Local','Horário no local','Saída de','Finalidade','Datas','Saída','Chegada','Viatura','Condutor','Qtd. passageiros','Passageiros','Observações'];
+  const rows=filtrar().map(s=>[s.numero,s.status,s.criado,ouT(s.solicitante),s.setor,s.contato,ouT(s.local),hlTxt(s),s.saidaDe,s.finalidade,ouT(s.datas.map(br).join(', ')),s.saida||'A definir',s.chegada,ouT(s.viatura),ouT(s.condutor),s.qtd,s.passageiros.map(p=>p.nome+(p.ident?' ('+p.ident+')':'')).join(' | '),s.obs]);
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+[cab,...rows].map(r=>r.map(q).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
   a.download='onibus-solicitacoes-'+hoje()+'.csv';document.body.appendChild(a);a.click();a.remove();toast('Planilha gerada ('+rows.length+' linhas).')};
 
