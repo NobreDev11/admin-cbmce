@@ -11,11 +11,11 @@
 :root{color-scheme:light;
   --bg:#f5f3f1;--paper:#ffffff;--ink:#1d1a18;--mute:#6b635d;--line:#e4ded8;--soft:#faf8f6;
   --red:#b3261e;--red2:#8f1d17;--brand-soft:#fbe9e7;--ok:#1e7a46;--ok-soft:#e3f3ea;--blue:#1d5d8f;
-  --warn-bg:#fff6da;--warn-ink:#8a5a00;--err-bg:#fdecea;--shadow:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.05)}
+  --warn-bg:#fff6da;--warn-ink:#8a5a00;--tbd:#c2410c;--tbd-bg:#fff4ec;--err-bg:#fdecea;--shadow:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.05)}
 @media (prefers-color-scheme:dark){:root{color-scheme:dark;
   --bg:#161312;--paper:#211d1b;--ink:#f2ede9;--mute:#a89f98;--line:#362f2b;--soft:#1b1817;
   --red:#c7372e;--red2:#e0574c;--brand-soft:#3a1f1c;--ok:#5fc48a;--ok-soft:#1b3326;--blue:#6aa8dc;
-  --warn-bg:#3a3112;--warn-ink:#f2c14e;--err-bg:#3a1f1c;--shadow:none}}
+  --warn-bg:#3a3112;--warn-ink:#f2c14e;--tbd:#fb923c;--tbd-bg:#2e1d12;--err-bg:#3a1f1c;--shadow:none}}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:clip}
 h1,h2,h3{line-height:1.2;margin:0;font-weight:700}
@@ -123,7 +123,11 @@ body.busy{cursor:progress}
 .mini{display:inline-flex;gap:8px;align-items:center;font-size:14px;font-weight:500;color:var(--mute);margin:10px 0 0;cursor:pointer}
 .mini input{width:18px;height:18px;min-height:0;margin:0;accent-color:var(--red)}
 input:disabled{opacity:.5}
-.tbd{color:var(--warn-ink);background:var(--warn-bg);border-radius:999px;padding:2px 8px;font-size:13px;font-weight:600;white-space:nowrap}
+/* "A definir": laranja discreto, borda tracejada e ponto — diferente do selo "Pendente" */
+.tbd{display:inline-flex;align-items:center;gap:5px;color:var(--tbd);background:var(--tbd-bg);border:1px dashed var(--tbd);border-radius:999px;padding:1px 8px;font-size:12px;font-weight:600;font-style:italic;white-space:nowrap}
+.tbd::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tbd);flex:none}
+tr.pend>td:first-child{box-shadow:inset 3px 0 0 var(--tbd)}
+.pendn{display:block;color:var(--tbd);font-size:12px;font-weight:600;margin-top:2px}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--ink);color:var(--paper);padding:12px 20px;border-radius:10px;font-weight:600;transition:transform .25s;z-index:99;max-width:90vw}
 #toast.on{transform:translateX(-50%)}
 @media(prefers-reduced-motion:reduce){#toast{transition:none}}
@@ -409,6 +413,7 @@ document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.datase
 const AD_TAG='<span class="tbd">A definir</span>';
 const ou=v=>v?esc(v):AD_TAG;
 const ouT=v=>v||'A definir';
+const faltam=s=>[s.solicitante,s.local,s.datas.length,s.saida,s.viatura,s.condutor].filter(v=>!v).length;
 $('#sSolic').addEventListener('change',()=>{const s=db.cad.solicitantes.find(x=>x.nome===$('#sSolic').value);if(s){if(!$('#sSetor').value)$('#sSetor').value=s.setor||'';if(!$('#sContato').value)$('#sContato').value=s.contato||''}});
 
 const min=t=>t?+t.slice(0,2)*60+ +t.slice(3,5):null;
@@ -477,11 +482,11 @@ function renderHist(){
   const h=hoje(),ativos=db.sol.filter(s=>s.status!=='Cancelada');const cnt=k=>db.sol.filter(s=>s.status===k).length;
   $('#stats').innerHTML=[[db.sol.length,'Total registradas'],[cnt('Pendente'),'Pendentes'],[ativos.filter(s=>s.datas.includes(h)).length,'Saídas hoje'],[ativos.filter(s=>s.status!=='Concluída'&&s.datas.some(d=>d>h)).length,'Próximas'],[cnt('Concluída'),'Concluídas']].map(([n,t])=>`<div class="stat"><b>${n}</b><span>${t}</span></div>`).join('');
   const l=filtrar();$('#histSub').textContent=`${l.length} de ${db.sol.length} solicitação(ões)`;
-  $('#tHist tbody').innerHTML=l.length?l.map(s=>`<tr>
-    <td class="n">${esc(s.numero)}</td><td class="nw">${fmtDatas(s.datas)}</td><td class="nw">${hr(s)}</td>
+  $('#tHist tbody').innerHTML=l.length?l.map(s=>{const nf=faltam(s);return `<tr${nf?' class="pend"':''}>
+    <td class="n">${esc(s.numero)}${nf?`<span class="pendn">${nf} a definir</span>`:''}</td><td class="nw">${fmtDatas(s.datas)}</td><td class="nw">${hr(s)}</td>
     <td>${ou(s.solicitante)}<span class="sub">${esc(s.setor)}</span></td><td>${ou(s.local)}${s.hl?`<span class="sub">No local: ${esc(hlTxt(s))}</span>`:''}<span class="sub">${esc(s.finalidade)}</span></td>
-    <td>${ou(s.viatura)}<span class="sub">${s.condutor?esc(s.condutor):'Condutor a definir'}</span></td><td>${s.qtd||0}</td><td><span class="st ${stc(s.status)}">${esc(s.status)}</span></td>
-    <td class="nw"><button class="sm" data-a="ver" data-id="${s.id}">Ver</button> <button class="sm" data-a="edit" data-id="${s.id}">Editar</button></td></tr>`).join('')
+    <td>${ou(s.viatura)}${s.condutor?`<span class="sub">${esc(s.condutor)}</span>`:'<span class="pendn">Condutor a definir</span>'}</td><td>${s.qtd||0}</td><td><span class="st ${stc(s.status)}">${esc(s.status)}</span></td>
+    <td class="nw"><button class="sm" data-a="ver" data-id="${s.id}">Ver</button> <button class="sm" data-a="edit" data-id="${s.id}">Editar</button></td></tr>`}).join('')
    :`<tr><td colspan="9" class="empty">${db.sol.length?'Nenhuma solicitação com esses filtros.':'Nenhuma solicitação registrada ainda. Comece pelos Cadastros (viaturas e condutores).'}</td></tr>`;
 }
 ['#fQ','#fSt','#fVtr','#fDe','#fAte'].forEach(s=>$(s).addEventListener('input',renderHist));
